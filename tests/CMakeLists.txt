@@ -9,6 +9,7 @@ include_directories (${LINEAR_SOURCE_DIR}/src
 add_definitions (-DBOOST_TEST_DYN_LINK)
 
 file(GLOB SOURCES src/*.cpp)
+file(GLOB INCLUDES includes/*.h)
 
 add_executable(TestSuite ${SOURCES})
 
@@ -19,6 +20,5 @@ target_link_libraries (TestSuite
                        )
 target_compile_options (TestSuite
                         PUBLIC -Wall)
-
 
 add_test (TestSuite TestSuite)
