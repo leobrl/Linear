@@ -12,7 +12,7 @@ struct IntBlockFixture {
   bool assert_is_constant(const IntBlock& block, int value){
     auto pass {true};
     for (size_t idx=0; idx<n; ++idx){
-      pass = block(idx) == value ? pass : pass & false;
+      pass = block[idx] == value ? pass : pass & false;
     }
 
     return(pass);

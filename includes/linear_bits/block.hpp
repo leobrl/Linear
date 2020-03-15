@@ -29,9 +29,9 @@ namespace linear{
 
             void fill(const T&);
 
-            inline T operator() (size_t idx) { return buffer[idx]; }
+            inline T operator[] (size_t idx) { return buffer[idx]; }
 
-            inline const T operator() (size_t idx) const { return buffer[idx]; } 
+            inline const T operator[] (size_t idx) const { return buffer[idx]; } 
             
     };
 }
