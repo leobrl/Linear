@@ -19,9 +19,9 @@ namespace linear{
 
             ~Block() = default;
 
-            Block(Block&&) = default;
-            
             Block(const Block&) = default;
+
+            Block(Block&&) = default;
 
             Block& operator= (const Block&) = default;
 
@@ -31,6 +31,7 @@ namespace linear{
 
             inline T operator() (size_t idx) { return buffer[idx]; }
 
+            inline const T operator() (size_t idx) const { return buffer[idx]; } 
             
     };
 }
