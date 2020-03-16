@@ -4,6 +4,9 @@
 
 namespace linear{
 
+    template <typename T> class Block;
+    template <typename T> std::ostream& operator<<( std::ostream&, const Block<T>& );
+
     template<typename T>
     class Block{
         
@@ -17,6 +20,8 @@ namespace linear{
             
             explicit Block(const size_t);
 
+            explicit Block(std::vector<T>);
+
             ~Block() = default;
 
             Block(const Block&) = default;
@@ -29,9 +34,21 @@ namespace linear{
 
             void fill(const T&);
 
-            inline T operator[] (size_t idx) { return buffer[idx]; }
+            inline T& operator[] (size_t idx) { return buffer[idx]; }
 
-            inline const T operator[] (size_t idx) const { return buffer[idx]; } 
-            
+            inline const T& operator[] (size_t idx) const { return buffer[idx]; } 
+
+            inline const size_t size () const { return buffer.size(); }
+
+            friend std::ostream& operator<< <T> (std::ostream&, const Block<T>&);
+    };
+
+    template<typename T>
+    std::ostream& operator<< (std::ostream& os, const Block<T>& b){ 
+        for (auto& e: b.buffer){
+            os << e;
+            if (&e != &b.buffer.back()) os << " ";
+        }
+        return os;
     };
 }

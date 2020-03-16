@@ -12,6 +12,12 @@ namespace linear{
     };
 
     template<typename T>
+    linear::Block<T>::Block(std::vector<T> v) {
+        buffer = v;
+//        buffer.shrink_to_fit();
+    };
+
+    template<typename T>
     void linear::Block<T>::fill(const T& value){
         std::fill(buffer.begin(), buffer.end(), value);
     };
