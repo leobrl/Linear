@@ -14,19 +14,18 @@ struct IntBlockFixture {
     for (size_t idx=0; pass & (idx<n) ; ++idx){
       pass = pass & (block[idx] == value);
     }
-
+    
     return(pass);
   }
 
   bool assert_is_equal(const IntBlock& block, std::vector<int> v){
-    
     bool pass = v.size() == block.size();
     
     auto it = v.begin();
     for (size_t idx=0; pass & (idx<n) & (it != v.end()); ++idx, ++it){
       pass = pass & (block[idx] == *it);
     }
-
+    
     return pass;
   }
 

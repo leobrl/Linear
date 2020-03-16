@@ -38,7 +38,7 @@ namespace linear{
 
             inline const T& operator[] (size_t idx) const { return buffer[idx]; } 
 
-            inline const size_t size () const { return buffer.size(); }
+            inline size_t size () const { return buffer.size(); }
 
             friend std::ostream& operator<< <T> (std::ostream&, const Block<T>&);
     };
