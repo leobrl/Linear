@@ -18,6 +18,7 @@ target_link_libraries (TestSuite
                        ${Boost_SYSTEM_LIBRARY}
                        ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
                        )
+        
 target_compile_options (TestSuite
                         PUBLIC -Wall)
 

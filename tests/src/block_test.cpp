@@ -1,39 +1,41 @@
-#define BOOST_TEST_MODULE example
-#include <boost/test/included/unit_test.hpp>
+#include <boost/test/unit_test.hpp>
+#include <boost/mpl/list.hpp>
 #include <Linear.hpp>
 #include <iostream>
 
+typedef boost::mpl::list<int, double, float, char> test_types;
 typedef linear::Block<int> IntBlock; 
+
+bool assert_is_equal(const IntBlock& block, std::vector<int> v){
+  bool pass = v.size() == block.size();
+  
+  auto it = v.begin();
+  for (size_t idx=0; pass & (idx<block.size()) & (it != v.end()); ++idx, ++it){
+    pass = pass & (block[idx] == *it);
+  }
+  
+  return pass;
+}
+
+template<typename T>
+bool assert_is_equal_to_const(const linear::Block<T>& block, T value){
+  auto pass {true};
+  for (size_t idx=0; pass & (idx<block.size()) ; ++idx){
+    pass = pass & (block[idx] == value);
+  }
+  
+  return(pass);
+}
 
 struct IntBlockFixture {
   IntBlockFixture() : n(10) { int_block = IntBlock(n); }
   ~IntBlockFixture() = default;
 
-  bool assert_is_equal_to_const(const IntBlock& block, int value){
-    auto pass {true};
-    for (size_t idx=0; pass & (idx<n) ; ++idx){
-      pass = pass & (block[idx] == value);
-    }
-    
-    return(pass);
-  }
-
-  bool assert_is_equal(const IntBlock& block, std::vector<int> v){
-    bool pass = v.size() == block.size();
-    
-    auto it = v.begin();
-    for (size_t idx=0; pass & (idx<n) & (it != v.end()); ++idx, ++it){
-      pass = pass & (block[idx] == *it);
-    }
-    
-    return pass;
-  }
-
   size_t n;
   IntBlock int_block;
 };
 
-BOOST_FIXTURE_TEST_SUITE(test_block, IntBlockFixture)
+BOOST_FIXTURE_TEST_SUITE(block_basic_tests, IntBlockFixture)
 
 BOOST_AUTO_TEST_CASE(test_vector_size,
                       * boost::unit_test::description("Tests constructor from vector.") )
@@ -142,6 +144,31 @@ BOOST_AUTO_TEST_CASE(test_ostream,
   auto check_2 = (std::equal(ostr.begin(), ostr.end(), expected.begin()));
   
   BOOST_TEST( check_1 & check_2 );
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+//
+
+BOOST_AUTO_TEST_SUITE(block_template_tests)
+
+BOOST_AUTO_TEST_CASE_TEMPLATE( test_template_block_ctor, T, test_types )
+{
+  linear::natural n{10};
+  auto block {linear::Block<T>(n)};
+  T value {};
+
+  BOOST_TEST(assert_is_equal_to_const(block, value));
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE( test_template_copy_ctor, T, test_types )
+{
+  linear::natural n{10};
+  auto block {linear::Block<T>(n)};
+  auto block_copy {block};
+
+  BOOST_TEST(!(&block[0] == &block_copy[0]));
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()
