@@ -4,6 +4,7 @@
 #include <iostream>
 
 typedef boost::mpl::list<int, double, float, char> test_types;
+//typedef boost::mpl::list<int> test_types;
 
 BOOST_AUTO_TEST_SUITE(matrix_basic_test)
 
@@ -106,7 +107,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_move_op, T, test_types){
 	BOOST_TEST(&(mat_copy(0,0)) == ptr);
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(test_iterator, T, test_types){
+BOOST_AUTO_TEST_CASE_TEMPLATE(test_row_iterator, T, test_types){
 	auto vec = std::vector<T>(10);
 	
 	for(size_t e = 0; e<vec.size(); ++e){
@@ -115,24 +116,22 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_iterator, T, test_types){
 
 	auto mat = linear::Matrix<T>(2, 5, vec);
 
-	auto assert {true};
-	
 	size_t i = 0;
-	for (auto it = mat.begin(); it != mat.end(), i<vec.size(); ++it, ++i){
-		assert &= *it == vec[i];
+
+	auto assert_increment {true};
+	for (auto it = mat.begin(); it != mat.end(); ++it, ++i){
+		assert_increment &= *it == vec[i];
+	}
+	
+	auto assert_decrement {true};
+	for (auto it = (--mat.end()); it != mat.begin(); --it, --i){
+		assert_decrement &= *it == vec[i-1];
 	}
 
-	i = vec.size()-1;
-	auto it = mat.end();
-
-	for (--it; it != mat.begin(), i>=vec.size(); --it, --i){
-		assert &= *it == vec[i];
-	}
-
-	BOOST_TEST(assert);
+	BOOST_TEST(assert_increment & assert_decrement);
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(test_iterator_post_increment, T, test_types){
+BOOST_AUTO_TEST_CASE_TEMPLATE(test_row_iterator_post_increment, T, test_types){
 	auto vec = std::vector<T>(10);
 	
 	for(size_t e = 0; e<vec.size(); ++e){
@@ -140,22 +139,84 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_iterator_post_increment, T, test_types){
 	}
 
 	auto mat = linear::Matrix<T>(2, 5, vec);
-
-	auto assert {true};
 	
 	size_t i = 0;
-	for (auto it = mat.begin(); it != mat.end(), i<vec.size(); it++, ++i){
-		assert &= *it == vec[i];
+
+	auto assert_increment {true};
+	for (auto it = mat.begin(); it != mat.end(); it++, ++i){
+		assert_increment &= *it == vec[i];
+	}
+	
+	auto assert_decrement {true};
+	for (auto it = (--mat.end()); it != mat.begin(); it--, --i){
+		assert_decrement &= *(it) == vec[i-1];
 	}
 
-	i = vec.size()-1;
-	auto it = mat.end();
+	BOOST_TEST(assert_increment & assert_decrement);
+}
 
-	for (--it; it != mat.begin(), i>=vec.size(); it++, --i){
-		assert &= *it == vec[i];
+BOOST_AUTO_TEST_CASE_TEMPLATE(test_col_iterator, T, test_types){
+
+	auto vec = std::vector<T>(10);
+	for(size_t e = 0; e<vec.size(); ++e){
+		vec[e] = static_cast<T>(e);
 	}
 
-	BOOST_TEST(assert);
+	linear::natural n_col{5};
+	linear::natural n_row{2};
+	auto mat = linear::Matrix<T>(n_row, n_col, vec);
+
+	auto expected = std::vector<T>();
+	for (linear::natural c = 0; c < n_col; ++c){
+		for (linear::natural r = 0; r < n_row; ++r){
+			expected.push_back(vec[c + r*n_col]); 
+		}	
+	}
+		
+	size_t i = 0;
+	auto assert_increment {true};
+	for (auto it = mat.col_begin(); it != mat.col_end(); ++it, ++i){
+		assert_increment &= *it == expected[i];
+	}
+
+	auto assert_decrement {true};
+	for (auto it = (--mat.col_end()); it != mat.col_begin(); --it, --i){
+		assert_decrement &= *(it) == expected[i-1];
+	}
+
+	BOOST_TEST(assert_increment);
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(test_col_iterator_post_increment, T, test_types){
+
+	auto vec = std::vector<T>(10);
+	for(size_t e = 0; e<vec.size(); ++e){
+		vec[e] = static_cast<T>(e);
+	}
+
+	linear::natural n_col{5};
+	linear::natural n_row{2};
+	auto mat = linear::Matrix<T>(n_row, n_col, vec);
+
+	auto expected = std::vector<T>();
+	for (linear::natural c = 0; c < n_col; ++c){
+		for (linear::natural r = 0; r < n_row; ++r){
+			expected.push_back(vec[c + r*n_col]); 
+		}	
+	}
+		
+	size_t i = 0;
+	auto assert_increment {true};
+	for (auto it = mat.col_begin(); it != mat.col_end(); it++, ++i){
+		assert_increment &= *it == expected[i];
+	}
+
+	auto assert_decrement {true};
+	for (auto it = (--mat.col_end()); it != mat.col_begin(); it--, --i){
+		assert_decrement &= *(it) == expected[i-1];
+	}
+
+	BOOST_TEST(assert_increment);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

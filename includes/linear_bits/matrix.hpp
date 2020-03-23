@@ -65,14 +65,44 @@ namespace linear{
 					row_iterator& operator-- ();
 					row_iterator operator-- (int);
 
-
-
 					bool operator!= (const row_iterator&) const;
 					bool operator== (const row_iterator&) const;
 			};
 
+			class col_iterator{
+				
+				public:
+					typedef std::bidirectional_iterator_tag iterator_category;
+					typedef T 								value_type;
+					typedef T*                             	pointer;
+					typedef T&                             	reference;
+
+				private:
+					Matrix& mat;
+					natural current_row;
+					natural current_col;
+
+				public:
+					explicit 	col_iterator(Matrix<T>&);
+					explicit 	col_iterator(Matrix<T>&, natural, natural);
+					inline 		col_iterator(const col_iterator&) = default;
+
+					reference operator* ();
+
+					col_iterator& operator++ ();
+					col_iterator operator++ (int);
+					col_iterator& operator-- ();
+					col_iterator operator-- (int);
+
+					bool operator!= (const col_iterator&) const;
+					bool operator== (const col_iterator&) const;
+			};
+
 			row_iterator begin();
 			row_iterator end();
+
+			col_iterator col_begin();
+			col_iterator col_end();
 
 			// Friends
 			friend std::ostream& operator<< <T> (std::ostream&, const Matrix<T>&);

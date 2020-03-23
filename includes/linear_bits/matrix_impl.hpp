@@ -89,12 +89,12 @@ namespace linear{
 	typename Matrix<T>::row_iterator& 
 	Matrix<T>::row_iterator::operator-- (){
 
-		current_col--;
-		if(current_col < 0){
+		if(current_col > 0){
+			current_col--;
+		} else{
 			current_row--;
 			current_col = mat.n_col - 1;
 		}
-
 		return *this;
 	}
 
@@ -118,5 +118,93 @@ namespace linear{
 	bool Matrix<T>::row_iterator::operator==(const Matrix<T>::row_iterator& it) const{
 		return((current_row == it.current_row) & (current_col == it.current_col));
 	}
+
+	/////
+
+		template<typename T>
+	typename Matrix<T>::col_iterator
+	Matrix<T>::col_begin(){
+		return typename Matrix<T>::col_iterator(*this);
+	}
+
+	template<typename T>
+	typename Matrix<T>::col_iterator
+	Matrix<T>::col_end(){
+		return typename Matrix<T>::col_iterator(*this, 0, n_col); // one elemen after end
+	}
+
+	template<typename T>
+	Matrix<T>::col_iterator::col_iterator(Matrix<T>& m) : mat(m){
+		current_row = natural(0);
+		current_col = natural(0);
+	}
+
+	template<typename T>
+	Matrix<T>::col_iterator::col_iterator(Matrix<T>& m, natural row, natural col) : mat(m), current_row(row), current_col(col){
+	}
+
+	template<typename T>
+	T& Matrix<T>::col_iterator::operator* (){
+		return mat.operator()(current_row, current_col);
+	}
+
+	template<typename T>
+	typename Matrix<T>::col_iterator& 
+	Matrix<T>::col_iterator::operator++ (){
+
+		current_row++;
+		if(current_row >= mat.n_row){
+			current_col++;
+			current_row = 0;
+		}
+
+		return *this;
+	}
+
+	template<typename T>
+	typename Matrix<T>::col_iterator 
+	Matrix<T>::col_iterator::operator++ (int){
+
+		typename Matrix<T>::col_iterator temp {*this}; 
+
+		++(*this);
+
+		return temp;
+	}
+
+	template<typename T>
+	typename Matrix<T>::col_iterator& 
+	Matrix<T>::col_iterator::operator-- (){
+
+		if(current_row > 0){
+			current_row--;
+		} else{
+			current_col--;
+			current_row = mat.n_row - 1;
+		}
+
+		return *this;
+	}
+
+	template<typename T>
+	typename Matrix<T>::col_iterator
+	Matrix<T>::col_iterator::operator-- (int){
+
+		typename Matrix<T>::col_iterator temp {*this}; 
+		--(*this);
+
+		return temp;
+	}
+
+	template<typename T>
+	bool Matrix<T>::col_iterator::operator!=(const Matrix<T>::col_iterator& it) const{
+		return( (current_row != it.current_row) || (current_col != it.current_col) );
+	}
+
+	template<typename T>
+	bool Matrix<T>::col_iterator::operator==(const Matrix<T>::col_iterator& it) const{
+		return((current_row == it.current_row) & (current_col == it.current_col));
+	}
+
 
 }
