@@ -132,4 +132,30 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_iterator, T, test_types){
 	BOOST_TEST(assert);
 }
 
+BOOST_AUTO_TEST_CASE_TEMPLATE(test_iterator_post_increment, T, test_types){
+	auto vec = std::vector<T>(10);
+	
+	for(size_t e = 0; e<vec.size(); ++e){
+		vec[e] = static_cast<T>(e);
+	}
+
+	auto mat = linear::Matrix<T>(2, 5, vec);
+
+	auto assert {true};
+	
+	size_t i = 0;
+	for (auto it = mat.begin(); it != mat.end(), i<vec.size(); it++, ++i){
+		assert &= *it == vec[i];
+	}
+
+	i = vec.size()-1;
+	auto it = mat.end();
+
+	for (--it; it != mat.begin(), i>=vec.size(); it++, --i){
+		assert &= *it == vec[i];
+	}
+
+	BOOST_TEST(assert);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

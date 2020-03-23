@@ -61,7 +61,11 @@ namespace linear{
 					reference operator* ();
 
 					row_iterator& operator++ ();
+					row_iterator operator++ (int);
 					row_iterator& operator-- ();
+					row_iterator operator-- (int);
+
+
 
 					bool operator!= (const row_iterator&) const;
 					bool operator== (const row_iterator&) const;

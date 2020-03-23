@@ -75,6 +75,17 @@ namespace linear{
 	}
 
 	template<typename T>
+	typename Matrix<T>::row_iterator 
+	Matrix<T>::row_iterator::operator++ (int){
+
+		typename Matrix<T>::row_iterator temp {*this}; 
+
+		++(*this);
+
+		return temp;
+	}
+
+	template<typename T>
 	typename Matrix<T>::row_iterator& 
 	Matrix<T>::row_iterator::operator-- (){
 
@@ -85,6 +96,17 @@ namespace linear{
 		}
 
 		return *this;
+	}
+
+	template<typename T>
+	typename Matrix<T>::row_iterator
+	Matrix<T>::row_iterator::operator-- (int){
+
+		typename Matrix<T>::row_iterator temp {*this}; 
+
+		--(*this);
+
+		return temp;
 	}
 
 	template<typename T>
