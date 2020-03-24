@@ -13,7 +13,7 @@ namespace linear{
 	template<typename T>
 	class Matrix{
 		
-		typedef std::unique_ptr<Block<T>> block;
+		using block = std::unique_ptr<Block<T>>;
 		
 		public:
 			const natural n_row;

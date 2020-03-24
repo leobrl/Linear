@@ -3,7 +3,7 @@
 #include <Linear.hpp>	
 #include <iostream>
 
-typedef boost::mpl::list<int, double, float, char> test_types;
+using test_types = boost::mpl::list<int, double, float, char>;
 //typedef boost::mpl::list<int> test_types;
 
 BOOST_AUTO_TEST_SUITE(matrix_basic_test)

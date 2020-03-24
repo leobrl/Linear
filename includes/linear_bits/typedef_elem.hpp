@@ -4,6 +4,6 @@
 
 namespace linear{
 
-	typedef size_t natural;
+	using natural = size_t;
 
 }

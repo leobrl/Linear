@@ -10,7 +10,7 @@ namespace linear{
     template<typename T>
     class Block{
         
-        typedef std::vector<T> raw_memory;
+        using raw_memory = std::vector<T>;
 
         protected:
 
