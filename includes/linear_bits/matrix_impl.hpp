@@ -5,7 +5,7 @@
 namespace linear{
 
 	template<typename T>
-	Matrix<T>::Matrix(natural n_row, natural n_col) : n_row(n_row), n_col(n_col){
+	Matrix<T>::Matrix(natural n_row_, natural n_col_) : n_row(n_row_), n_col(n_col_){
 		mem = std::make_unique<Block<T>>(n_col*n_row);
 	}
 
@@ -25,7 +25,7 @@ namespace linear{
 	}
 
 	template<typename T>
-	Matrix<T>::Matrix(const natural n_row, const natural n_col, const std::vector<T>& elem) : n_row(n_row), n_col(n_col)
+	Matrix<T>::Matrix(const natural n_row_, const natural n_col_, const std::vector<T>& elem) : n_row(n_row_), n_col(n_col_)
 	{
 		if (n_row*n_col != elem.size()) { 
 			throw std::invalid_argument("Number of elements is inconsistent with dimensions provided.");
@@ -119,9 +119,7 @@ namespace linear{
 		return((current_row == it.current_row) & (current_col == it.current_col));
 	}
 
-	/////
-
-		template<typename T>
+	template<typename T>
 	typename Matrix<T>::col_iterator
 	Matrix<T>::col_begin(){
 		return typename Matrix<T>::col_iterator(*this);
@@ -206,5 +204,9 @@ namespace linear{
 		return((current_row == it.current_row) & (current_col == it.current_col));
 	}
 
-
+	template<typename T>
+	Matrix<T>& Matrix<T>::operator*= (const Matrix& rhs){
+		
+		return rhs;
+	}
 }

@@ -1,9 +1,10 @@
 #pragma once
 
+#include<vector>
 #include<memory>
 
 namespace linear{
-
+    
     template <typename T> class Block;
     template <typename T> std::ostream& operator<<( std::ostream&, const Block<T>& );
 

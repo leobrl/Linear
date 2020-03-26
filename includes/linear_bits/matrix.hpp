@@ -14,7 +14,7 @@ namespace linear{
 	class Matrix{
 		
 		using block = std::unique_ptr<Block<T>>;
-		
+
 		public:
 			const natural n_row;
 			const natural n_col;
@@ -24,7 +24,7 @@ namespace linear{
 
 		public:
 
-			inline Matrix() : n_row(0), n_col(0) {};
+			inline Matrix() : n_row(0), n_col(0) {}
 			inline ~Matrix()	= default;
 			
 			explicit Matrix(natural, natural);
@@ -39,6 +39,8 @@ namespace linear{
 
 			inline const T&		operator() (natural r, natural c) const {return mem->operator[](c + n_col*r);} // row major
 			inline T& 			operator() (natural r, natural c) 		{return mem->operator[](c + n_col*r);} // row major
+
+			Matrix& operator*= (const Matrix&);
 
 			class row_iterator{
 				

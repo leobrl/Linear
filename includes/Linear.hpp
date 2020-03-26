@@ -1,4 +1,3 @@
-
 #include <iostream>
 
 // Class definition
