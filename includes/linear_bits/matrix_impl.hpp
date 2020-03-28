@@ -207,6 +207,24 @@ namespace linear{
 	template<typename T>
 	Matrix<T>& Matrix<T>::operator*= (const Matrix& rhs){
 		
-		return rhs;
+		if(n_row != rhs.n_col){
+			throw std::invalid_argument("Invalid matrix multiplication.");
+		}
+
+		std::vector<T> row (n_row);
+		for(natural r = 0; r < n_row; ++r){
+			for(natural c = 0; c < n_col; ++c){
+				T prod{0};
+				for (natural j = 0; j < n_row; ++j){
+					prod += this->operator()(r, j) * rhs(j, c);
+				}
+				row[c] = prod;
+			}
+
+			for(natural c = 0; c < n_col; ++c){
+				this->operator()(r, c) = row[c];
+			}
+		}
+		return *this;
 	}
 }

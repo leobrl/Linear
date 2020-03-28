@@ -4,7 +4,6 @@
 #include <iostream>
 
 using test_types = boost::mpl::list<int, double, float, char>;
-//typedef boost::mpl::list<int> test_types;
 
 BOOST_AUTO_TEST_SUITE(matrix_basic_test)
 
@@ -63,6 +62,28 @@ BOOST_AUTO_TEST_CASE(test_vector_ctor,
   	auto check_2 = (std::equal(str.begin(), str.end(), expected.begin()));
 
 	BOOST_TEST(check_1 & check_2);
+}
+
+BOOST_AUTO_TEST_CASE(test_matrix_multiplication,
+					* boost::unit_test::description("Tests matrix constructor from vector of elements"))
+{
+	std::vector<int> m {1,2,3,4}; 
+	auto rhs {linear::Matrix<int>(2, 2, m)};
+	auto lhs {linear::Matrix<int>(2, 2, m)};
+
+	//	1 2	 *	1 2		=	7 	10
+	//	3 4		3 4			15 	22
+
+	rhs *= lhs;
+	std::vector<int> expected {7, 10, 15, 22}; 
+
+	int i {0};
+	auto is_correct {true};
+	for (auto it = rhs.begin(); it != rhs.end(); ++it, ++i){
+		is_correct &= *it == expected[i];
+	}	
+
+	BOOST_TEST(is_correct);
 }
 
 BOOST_AUTO_TEST_CASE(test_invalid_vector_ctor,
