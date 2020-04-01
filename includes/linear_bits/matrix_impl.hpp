@@ -214,7 +214,7 @@ namespace linear{
 		std::vector<T> row (n_row);
 		for(natural r = 0; r < n_row; ++r){
 			for(natural c = 0; c < n_col; ++c){
-				T prod{0};
+				T prod {0};
 				for (natural j = 0; j < n_row; ++j){
 					prod += this->operator()(r, j) * rhs(j, c);
 				}
@@ -225,6 +225,28 @@ namespace linear{
 				this->operator()(r, c) = row[c];
 			}
 		}
+		
+		return *this;
+	}
+
+	template<typename T>
+	Matrix<T>& Matrix<T>::transpose(){
+			
+		std::vector<T> t;
+		for(natural c = 0; c < n_col; ++c){
+			for(natural r = 0; r < n_row; ++r){
+				t.push_back(mem->operator[](c + n_col*r));
+			}
+		}
+
+		for(size_t i=0; i < t.size(); ++i){
+			mem->operator[](i) = t[i];
+		}
+
+		auto sw {n_row};
+		n_row = n_col;
+		n_col = sw;
+
 		return *this;
 	}
 }

@@ -15,11 +15,10 @@ namespace linear{
 		
 		using block = std::unique_ptr<Block<T>>;
 
-		public:
-			const natural n_row;
-			const natural n_col;
-
 		private:
+			natural n_row;
+			natural n_col;
+
 			block mem; 
 
 		public:
@@ -40,7 +39,9 @@ namespace linear{
 			inline const T&		operator() (natural r, natural c) const {return mem->operator[](c + n_col*r);} // row major
 			inline T& 			operator() (natural r, natural c) 		{return mem->operator[](c + n_col*r);} // row major
 
-			Matrix& operator*= (const Matrix&);
+			Matrix& transpose();
+
+			inline Matrix& operator*= (const Matrix&);
 
 			class row_iterator{
 				
@@ -105,6 +106,9 @@ namespace linear{
 
 			col_iterator col_begin();
 			col_iterator col_end();
+
+			inline natural nrow() {return n_row;}
+			inline natural ncol() {return n_col;}
 
 			// Friends
 			friend std::ostream& operator<< <T> (std::ostream&, const Matrix<T>&);

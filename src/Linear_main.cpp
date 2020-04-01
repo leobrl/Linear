@@ -9,12 +9,12 @@ int main(){
     std::uniform_int_distribution<> dis(1, 10);
 
 	std::vector<int> m {}; 
-	for(int i=0; i<10000;++i){
+	for(int i=0; i<1000000;++i){
 		m.push_back(dis(gen));
 	}
 
-	auto rhs {linear::Matrix<int>(100, 100, m)};
-	auto lhs {linear::Matrix<int>(100, 100, m)};
+	auto rhs {linear::Matrix<int>(1000, 1000, m)};
+	auto lhs {linear::Matrix<int>(1000, 1000, m)};
 
 
 	auto start = std::chrono::steady_clock::now();

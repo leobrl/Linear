@@ -6,7 +6,8 @@ project (Linear CXX)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/debug)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/release)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_BINARY_DIR}/releasewd)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_BINARY_DIR}/release_wd)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_BINARY_DIR}/min_size_rel)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED 17)
@@ -22,6 +23,7 @@ endif()
 add_executable(Linear src/Linear_main.cpp)
 
 IF(CMAKE_BUILD_TYPE MATCHES "Debug")
+	message(STATUS "Target compiled with debug compiler options.")
 	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 		target_compile_options(Linear PUBLIC
 			-Weverything
@@ -31,10 +33,11 @@ IF(CMAKE_BUILD_TYPE MATCHES "Debug")
 		target_compile_options(Linear PUBLIC -Wall)
 	endif()
 else()
+	message(STATUS "Target compiled with release compiler options.")
 	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-		target_compile_options(Linear PUBLIC -W -Wall -o3)
+		target_compile_options(Linear PUBLIC -W -Wall -O3)
 	elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		target_compile_options(Linear PUBLIC -Wall -o3)
+		target_compile_options(Linear PUBLIC -Wall -O3)
 	endif()
 ENDIF()
 

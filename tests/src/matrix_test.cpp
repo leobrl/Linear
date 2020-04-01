@@ -64,8 +64,34 @@ BOOST_AUTO_TEST_CASE(test_vector_ctor,
 	BOOST_TEST(check_1 & check_2);
 }
 
+BOOST_AUTO_TEST_CASE(test_matrix_transpose,
+					* boost::unit_test::description("Tests matrix transpose."))
+{
+	std::vector<int> m {1, 2, 3, 4, 5, 6}; 
+	auto rhs {linear::Matrix<int>(2, 3, m)};
+
+	// 1 2 3 => 1 4
+	// 4 5 6	2 5
+	//			3 6
+
+	rhs.transpose();
+	
+	//std::cout << rhs << std::endl;
+
+	std::vector<int> expected {1, 4, 2, 5, 3, 6}; 
+
+	int i {0};
+	auto is_correct {true};
+	for (auto it = rhs.begin(); it != rhs.end(); ++it, ++i){
+		is_correct &= *it == expected[i];
+	}	
+
+	BOOST_TEST(is_correct);
+
+}
+
 BOOST_AUTO_TEST_CASE(test_matrix_multiplication,
-					* boost::unit_test::description("Tests matrix constructor from vector of elements"))
+					* boost::unit_test::description("Tests matrix in place matrix multiplication."))
 {
 	std::vector<int> m {1,2,3,4}; 
 	auto rhs {linear::Matrix<int>(2, 2, m)};
@@ -102,8 +128,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_base_ctor, T, test_types){
 	auto mat = linear::Matrix<T>();
 	auto value = linear::natural();
 
-	auto check_1 = mat.n_row == value;
-	auto check_2 = mat.n_col == value;
+	auto check_1 = mat.nrow() == value;
+	auto check_2 = mat.ncol() == value;
 
 	BOOST_TEST(check_1 & check_2);
 }
