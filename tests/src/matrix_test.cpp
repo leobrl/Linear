@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE(test_matrix_transpose,
 
 }
 
-BOOST_AUTO_TEST_CASE(test_matrix_multiplication,
+BOOST_AUTO_TEST_CASE(test_inplace_matrix_multiplication,
 					* boost::unit_test::description("Tests matrix in place matrix multiplication."))
 {
 	std::vector<int> m {1,2,3,4}; 
@@ -109,6 +109,31 @@ BOOST_AUTO_TEST_CASE(test_matrix_multiplication,
 		is_correct &= *it == expected[i];
 	}	
 
+	BOOST_TEST(is_correct);
+}
+
+BOOST_AUTO_TEST_CASE(test_matrix_multiplication,
+					* boost::unit_test::description("Tests matrix in place matrix multiplication."))
+{
+	std::vector<int> m_rhs {1, 2, 3, 4, 5, 6};
+	std::vector<int> m_lhs {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}; 
+	auto rhs {linear::Matrix<int>(2, 3, m_rhs)};
+	auto lhs {linear::Matrix<int>(3, 4, m_lhs)};
+
+	//	1 2 3	 *	1  2  3  4		=	38	44	 50	 56
+	//	4 5	6		5  6  7  8			83 	98	113	128
+	//				9 10 11 12
+	
+	auto res = rhs * lhs;
+	std::vector<int> expected {38, 44, 50, 56, 83, 98, 113, 128}; 
+
+	int i {0};
+	
+	auto is_correct {true};
+	for (auto it = res->begin(); it != res->end(); ++it, ++i){
+		is_correct &= *it == expected[i];
+	}	
+	
 	BOOST_TEST(is_correct);
 }
 

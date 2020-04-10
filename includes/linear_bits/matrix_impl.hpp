@@ -205,18 +205,25 @@ namespace linear{
 	}
 
 	template<typename T>
-	Matrix<T>& Matrix<T>::operator*= (const Matrix& rhs){
+	Matrix<T>& Matrix<T>::operator*= (Matrix& rhs){
 		
-		if(n_row != rhs.n_col){
+		/*
+			in place matrix multiplication. Rhs is transposed to reduce 
+			cache misses.
+		*/
+
+		if((n_row != rhs.n_row) | (n_col != rhs.n_col)){
 			throw std::invalid_argument("Invalid matrix multiplication.");
 		}
+		
+		rhs.transpose();
 
 		std::vector<T> row (n_row);
 		for(natural r = 0; r < n_row; ++r){
 			for(natural c = 0; c < n_col; ++c){
 				T prod {0};
 				for (natural j = 0; j < n_row; ++j){
-					prod += this->operator()(r, j) * rhs(j, c);
+					prod += this->operator()(r, j) * rhs(c, j);
 				}
 				row[c] = prod;
 			}
@@ -225,7 +232,9 @@ namespace linear{
 				this->operator()(r, c) = row[c];
 			}
 		}
-		
+
+		rhs.transpose();
+
 		return *this;
 	}
 
@@ -249,4 +258,58 @@ namespace linear{
 
 		return *this;
 	}
+
+
+	template<typename T>
+	std::unique_ptr<Matrix<T>> Matrix<T>::operator* (const Matrix<T>& lhs){
+		return multiply_tiled(lhs);
+		//return multiply_naive(lhs);
+	}
+
+	template<typename T>
+	std::unique_ptr<Matrix<T>> Matrix<T>::multiply_naive(const Matrix<T>& lhs){
+		natural nr = n_row;
+		natural nc = lhs.ncol();
+		
+		auto res = std::make_unique< Matrix<T>>(nr, nc);
+
+		for(natural r = 0; r < nr; ++r){
+			for(natural c = 0; c < nc; ++c){
+				for(natural i=0; i< n_col; ++i){
+					(*res)(r, c) += this->operator()(r, i) * lhs(i, c);
+				}
+			}
+		}
+		return res;
+	}
+
+	template<typename T>
+	std::unique_ptr<Matrix<T>> Matrix<T>::multiply_tiled(const Matrix<T>& lhs){
+		natural nr = n_row;
+		natural nc = lhs.ncol();
+		
+		auto res = std::make_unique< Matrix<T>>(nr, nc);
+
+		// tile sizes
+		natural t = 8;
+
+		for(natural I = 0; I < nr; I += t){
+			for(natural J = 0; J < nc; J += t){
+				for(natural K = 0; K < n_col; K += t){
+				
+					for(natural i = I; i < std::min(I+t, nr); ++i){
+						for(natural j = J; j < std::min(J+t, nc); ++j){
+							for(natural k = K; k < std::min(K+t, n_col); ++k){
+								(*res)(i, j) += this->operator()(i, k) * lhs(k, j);
+							}
+						}
+					}		
+				}
+			}
+		}
+
+		return res;
+	}
+
+
 }

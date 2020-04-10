@@ -9,16 +9,17 @@ int main(){
     std::uniform_int_distribution<> dis(1, 10);
 
 	std::vector<int> m {}; 
-	for(int i=0; i<1000000;++i){
+	int p = 20;
+	for(int i=0; i<std::pow(2.0, p);++i){
 		m.push_back(dis(gen));
 	}
 
-	auto rhs {linear::Matrix<int>(1000, 1000, m)};
-	auto lhs {linear::Matrix<int>(1000, 1000, m)};
-
+	auto sz = static_cast<linear::natural>(std::pow(2.0, p/2));
+	auto rhs {linear::Matrix<int>(sz, sz, m)};
+	auto lhs {linear::Matrix<int>(sz, sz, m)};
 
 	auto start = std::chrono::steady_clock::now();
-	rhs *= lhs;
+	auto res = rhs * lhs;
 	auto end = std::chrono::steady_clock::now();
 	std::chrono::duration<double> diff = end-start;
 

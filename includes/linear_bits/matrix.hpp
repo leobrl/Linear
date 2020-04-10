@@ -9,7 +9,7 @@ namespace linear{
 	
 	template<typename T> class Matrix;
 	template <typename T> std::ostream& operator<<( std::ostream&, const Matrix<T>& );
-	
+
 	template<typename T>
 	class Matrix{
 		
@@ -41,7 +41,9 @@ namespace linear{
 
 			Matrix& transpose();
 
-			inline Matrix& operator*= (const Matrix&);
+			Matrix& operator*= 	(Matrix&);
+			std::unique_ptr<Matrix<T>> operator* 	(const Matrix&);
+
 
 			class row_iterator{
 				
@@ -107,10 +109,14 @@ namespace linear{
 			col_iterator col_begin();
 			col_iterator col_end();
 
-			inline natural nrow() {return n_row;}
-			inline natural ncol() {return n_col;}
+			inline natural nrow() const {return n_row;}
+			inline natural ncol() const {return n_col;}
 
 			// Friends
 			friend std::ostream& operator<< <T> (std::ostream&, const Matrix<T>&);
+
+			private:
+				std::unique_ptr<Matrix<T>> multiply_naive(const Matrix&);
+				std::unique_ptr<Matrix<T>> multiply_tiled(const Matrix&);
 	};
 }
