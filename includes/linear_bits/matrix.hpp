@@ -23,27 +23,30 @@ namespace linear{
 
 		public:
 
-			inline Matrix() : n_row(0), n_col(0) {}
-			inline ~Matrix()	= default;
+			inline 			Matrix() noexcept : n_row(0), n_col(0) {}
+			inline 			~Matrix() = default;
 			
-			explicit Matrix(natural, natural);
-			explicit Matrix(const Matrix&);
-			explicit Matrix(const std::vector<T>&);
-			explicit Matrix(const natural, const natural, const std::vector<T>&);
+							Matrix(const Matrix&);
+							Matrix(Matrix&&) noexcept;
+			explicit 		Matrix(natural, natural);							
+			explicit 		Matrix(const std::vector<T>&);
+			explicit 		Matrix(const natural, const natural, const std::vector<T>&);
 			
-			Matrix(Matrix&&)	= default;
+			Matrix& 		operator= (const Matrix&)	= delete;
+			Matrix& 		operator= (Matrix&&)		= delete;
 
-			Matrix& operator= (const Matrix&)	= delete;
-			Matrix& operator= (Matrix&&)		= delete;
+			inline const T&	operator() (natural r, natural c) const {return mem->operator[](c + n_col*r);} // row major
+			inline T& 		operator() (natural r, natural c) 		{return mem->operator[](c + n_col*r);} // row major
 
-			inline const T&		operator() (natural r, natural c) const {return mem->operator[](c + n_col*r);} // row major
-			inline T& 			operator() (natural r, natural c) 		{return mem->operator[](c + n_col*r);} // row major
+			Matrix& 		transpose();
 
-			Matrix& transpose();
+			Matrix& 		operator*= 	(Matrix&);
+			Matrix& 		operator+= 	(const Matrix&);
+			Matrix&			operator-= 	(const Matrix&);
+			
+			Matrix	 		operator* 	(const Matrix&);
 
-			Matrix& operator*= 	(Matrix&);
-			std::unique_ptr<Matrix<T>> operator* 	(const Matrix&);
-
+			Matrix&			operator>>	(const std::vector<T>);
 
 			class row_iterator{
 				
@@ -103,20 +106,20 @@ namespace linear{
 					bool operator== (const col_iterator&) const;
 			};
 
-			row_iterator begin();
-			row_iterator end();
+			row_iterator 	begin();
+			row_iterator 	end();
 
-			col_iterator col_begin();
-			col_iterator col_end();
+			col_iterator 	col_begin();
+			col_iterator 	col_end();
 
-			inline natural nrow() const {return n_row;}
-			inline natural ncol() const {return n_col;}
+			inline natural	nrow() const {return n_row;}
+			inline natural 	ncol() const {return n_col;}
 
 			// Friends
 			friend std::ostream& operator<< <T> (std::ostream&, const Matrix<T>&);
 
-			private:
-				std::unique_ptr<Matrix<T>> multiply_naive(const Matrix&);
-				std::unique_ptr<Matrix<T>> multiply_tiled(const Matrix&);
+		private:
+			Matrix<T> 		multiply_naive(const Matrix&);
+			Matrix<T> 		multiply_tiled(const Matrix&);
 	};
 }

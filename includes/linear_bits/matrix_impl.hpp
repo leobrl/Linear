@@ -35,6 +35,12 @@ namespace linear{
 	}
 
 	template<typename T>
+	Matrix<T>::Matrix(Matrix&& rhs) noexcept : n_row(rhs.n_row), n_col(rhs.n_col), mem(std::move(rhs.mem)){
+		rhs.n_row = 0;
+		rhs.n_col = 0;
+	}
+
+	template<typename T>
 	typename Matrix<T>::row_iterator
 	Matrix<T>::begin(){
 		return typename Matrix<T>::row_iterator(*this);
@@ -239,6 +245,36 @@ namespace linear{
 	}
 
 	template<typename T>
+	Matrix<T>& Matrix<T>::operator+= (const Matrix& rhs){
+		if((n_row != rhs.n_row) | (n_col != rhs.n_col)){
+			throw std::invalid_argument("Invalid matrix dimensions.");
+		}
+
+		for(natural r = 0; r < n_row; ++r){
+			for(natural c = 0; c < n_col; ++c){
+				this->operator()(r, c) += rhs.operator()(r, c);
+			}
+		}
+
+		return *this;
+	}
+
+	template<typename T>
+	Matrix<T>& Matrix<T>::operator-= (const Matrix& rhs){
+		if((n_row != rhs.n_row) | (n_col != rhs.n_col)){
+			throw std::invalid_argument("Invalid matrix dimensions.");
+		}
+
+		for(natural r = 0; r < n_row; ++r){
+			for(natural c = 0; c < n_col; ++c){
+				this->operator()(r, c) -= rhs.operator()(r, c);	
+			}
+		}
+
+		return *this;
+	}
+
+	template<typename T>
 	Matrix<T>& Matrix<T>::transpose(){
 			
 		std::vector<T> t;
@@ -259,24 +295,22 @@ namespace linear{
 		return *this;
 	}
 
-
 	template<typename T>
-	std::unique_ptr<Matrix<T>> Matrix<T>::operator* (const Matrix<T>& lhs){
+	Matrix<T> Matrix<T>::operator* (const Matrix<T>& lhs){
 		return multiply_tiled(lhs);
-		//return multiply_naive(lhs);
 	}
 
 	template<typename T>
-	std::unique_ptr<Matrix<T>> Matrix<T>::multiply_naive(const Matrix<T>& lhs){
+	Matrix<T> Matrix<T>::multiply_naive(const Matrix<T>& lhs){
 		natural nr = n_row;
 		natural nc = lhs.ncol();
 		
-		auto res = std::make_unique< Matrix<T>>(nr, nc);
+		auto res = Matrix<T>(nr, nc);
 
 		for(natural r = 0; r < nr; ++r){
 			for(natural c = 0; c < nc; ++c){
 				for(natural i=0; i< n_col; ++i){
-					(*res)(r, c) += this->operator()(r, i) * lhs(i, c);
+					res(r, c) += this->operator()(r, i) * lhs(i, c);
 				}
 			}
 		}
@@ -284,26 +318,29 @@ namespace linear{
 	}
 
 	template<typename T>
-	std::unique_ptr<Matrix<T>> Matrix<T>::multiply_tiled(const Matrix<T>& lhs){
+	Matrix<T> Matrix<T>::multiply_tiled(const Matrix<T>& lhs){
 		natural nr = n_row;
 		natural nc = lhs.ncol();
 		
-		auto res = std::make_unique< Matrix<T>>(nr, nc);
+		auto res = Matrix<T>(nr, nc);
 
 		// tile sizes
 		natural t = 8;
 
+		// tiling
 		for(natural I = 0; I < nr; I += t){
 			for(natural J = 0; J < nc; J += t){
 				for(natural K = 0; K < n_col; K += t){
-				
+					
+					// the tile
 					for(natural i = I; i < std::min(I+t, nr); ++i){
 						for(natural j = J; j < std::min(J+t, nc); ++j){
 							for(natural k = K; k < std::min(K+t, n_col); ++k){
-								(*res)(i, j) += this->operator()(i, k) * lhs(k, j);
+								res(i, j) += this->operator()(i, k) * lhs(k, j);
 							}
 						}
-					}		
+					}	
+
 				}
 			}
 		}
@@ -311,5 +348,19 @@ namespace linear{
 		return res;
 	}
 
+	/**/
 
+	template<typename T>
+	Matrix<T>& Matrix<T>::operator>> (const std::vector<T> rhs){
+
+		if((n_row*n_col) != rhs.size()){
+			throw std::invalid_argument("Invalid vector dimensions.");
+		}
+
+		for(size_t i(0); i<rhs.size; i++){
+			mem->operator[](i) = rhs[i];
+		}
+
+		return *this;
+	}
 }

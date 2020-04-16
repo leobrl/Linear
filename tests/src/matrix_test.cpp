@@ -113,7 +113,7 @@ BOOST_AUTO_TEST_CASE(test_inplace_matrix_multiplication,
 }
 
 BOOST_AUTO_TEST_CASE(test_matrix_multiplication,
-					* boost::unit_test::description("Tests matrix in place matrix multiplication."))
+					* boost::unit_test::description("Tests matrix matrix multiplication."))
 {
 	std::vector<int> m_rhs {1, 2, 3, 4, 5, 6};
 	std::vector<int> m_lhs {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}; 
@@ -130,7 +130,49 @@ BOOST_AUTO_TEST_CASE(test_matrix_multiplication,
 	int i {0};
 	
 	auto is_correct {true};
-	for (auto it = res->begin(); it != res->end(); ++it, ++i){
+	for (auto it = res.begin(); it != res.end(); ++it, ++i){
+		is_correct &= *it == expected[i];
+	}	
+	
+	BOOST_TEST(is_correct);
+}
+
+BOOST_AUTO_TEST_CASE(test_matrix_inplace_matrix_sum,
+					* boost::unit_test::description("Tests matrix in place matrix sum."))
+{
+	std::vector<int> m_rhs {1, 2, 3, 4, 5, 6};
+	std::vector<int> m_lhs {0, 1, 2, 3, 4, 5}; 
+	auto rhs {linear::Matrix<int>(2, 3, m_rhs)};
+	auto lhs {linear::Matrix<int>(2, 3, m_lhs)};
+	
+	rhs += lhs;
+	std::vector<int> expected {1, 3, 5, 7, 9, 11}; 
+
+	int i {0};
+	
+	auto is_correct {true};
+	for (auto it = rhs.begin(); it != rhs.end(); ++it, ++i){
+		is_correct &= *it == expected[i];
+	}	
+	
+	BOOST_TEST(is_correct);
+}
+
+BOOST_AUTO_TEST_CASE(test_matrix_inplace_matrix_subtraction,
+					* boost::unit_test::description("Tests matrix in place matrix subtraction."))
+{
+	std::vector<int> m_rhs {1, 2, 3, 4, 5, 6};
+	std::vector<int> m_lhs {0, 1, 2, 3, 4, 5}; 
+	auto rhs {linear::Matrix<int>(2, 3, m_rhs)};
+	auto lhs {linear::Matrix<int>(2, 3, m_lhs)};
+	
+	rhs -= lhs;
+	std::vector<int> expected {1, 1, 1, 1, 1, 1}; 
+
+	int i {0};
+	
+	auto is_correct {true};
+	for (auto it = rhs.begin(); it != rhs.end(); ++it, ++i){
 		is_correct &= *it == expected[i];
 	}	
 	

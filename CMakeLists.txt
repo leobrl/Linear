@@ -43,5 +43,9 @@ ENDIF()
 
 include_directories(./includes/)
 
+target_include_directories(Linear
+	PUBLIC
+	${LINEAR_SOURCE_DIR}/../../armadillo-9.850.1/include/)
+
 enable_testing ()
 add_subdirectory (tests)
