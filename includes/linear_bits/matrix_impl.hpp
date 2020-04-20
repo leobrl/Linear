@@ -284,9 +284,7 @@ namespace linear{
 			}
 		}
 
-		for(size_t i=0; i < t.size(); ++i){
-			mem->operator[](i) = t[i];
-		}
+		mem->fill(t);
 
 		auto sw {n_row};
 		n_row = n_col;
@@ -356,10 +354,7 @@ namespace linear{
 		if((n_row*n_col) != rhs.size()){
 			throw std::invalid_argument("Invalid vector dimensions.");
 		}
-
-		for(size_t i(0); i<rhs.size; i++){
-			mem->operator[](i) = rhs[i];
-		}
+		mem->fill(rhs);
 
 		return *this;
 	}

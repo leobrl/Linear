@@ -33,6 +33,7 @@ namespace linear{
             Block&                  operator= (Block&&)      = default;    
 
             void                    fill(const T&);
+            void                    fill(const std::vector<T>&);
             
             inline const T&         operator[] (size_t idx) const   { return buffer[idx]; }
             inline T&               operator[] (size_t idx)         { return buffer[idx]; }

@@ -17,7 +17,7 @@ target_include_directories (TestSuite
 
 add_definitions (-DBOOST_TEST_DYN_LINK)
 
-target_compile_options(TestSuite PRIVATE -W -Wall)
+target_compile_options(TestSuite PRIVATE -W -Wall -fno-elide-constructors)
 
 target_link_libraries (TestSuite
                        ${Boost_FILESYSTEM_LIBRARY}

@@ -179,12 +179,39 @@ BOOST_AUTO_TEST_CASE(test_matrix_inplace_matrix_subtraction,
 	BOOST_TEST(is_correct);
 }
 
+BOOST_AUTO_TEST_CASE(test_matrix_instream_operator,
+					* boost::unit_test::description("Tests matrix instream operator."))
+{
+	std::vector<int> vec {1, 2, 3, 4, 5, 6};
+	linear::Matrix<int> m(3, 2);
+
+	m >> vec;
+
+	bool is_correct{true};
+	auto vec_it = vec.begin();
+	for(auto it = m.begin(); it != m.end(); ++it, ++vec_it){
+		is_correct &= *it == *vec_it;
+	}
+
+	BOOST_TEST(is_correct);
+}
+
+BOOST_AUTO_TEST_CASE(test_matrix_instream_operator_exception,
+					* boost::unit_test::description("Tests matrix instream operator exception."))
+{
+	std::vector<int> vec {1, 2, 3, 4, 5, 6, 7};
+	linear::Matrix<int> m(3, 2);
+
+	BOOST_CHECK_THROW(m >> vec, std::invalid_argument);
+}
+
 BOOST_AUTO_TEST_CASE(test_invalid_vector_ctor,
 					 * boost::unit_test::description("Tests matrix constructor from invalid vector of elements")){
 
 	std::vector<int> v {1, 2, 3, 4, 5, 6, 7, 8};
 	BOOST_CHECK_THROW(linear::Matrix<int>(2, 5, v), std::invalid_argument);
 }
+
 
 BOOST_AUTO_TEST_SUITE_END()
 

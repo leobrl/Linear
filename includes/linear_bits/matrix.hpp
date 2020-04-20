@@ -47,7 +47,7 @@ namespace linear{
 			Matrix	 		operator* 	(const Matrix&);
 
 			Matrix&			operator>>	(const std::vector<T>);
-
+		
 			class row_iterator{
 				
 				public:
