@@ -305,10 +305,15 @@ namespace linear{
 		
 		auto res = Matrix<T>(nr, nc);
 
-		for(natural r = 0; r < nr; ++r){
-			for(natural c = 0; c < nc; ++c){
-				for(natural i=0; i< n_col; ++i){
-					res(r, c) += this->operator()(r, i) * lhs(i, c);
+		#pragma omp parallel
+		{
+			natural r, c, i;
+			#pragma omp for
+			for( r = 0; r < nr; ++r){
+				for( c = 0; c < nc; ++c){
+					for( i=0; i< n_col; ++i){
+						res(r, c) += this->operator()(r, i) * lhs(i, c);
+					}
 				}
 			}
 		}
@@ -326,11 +331,17 @@ namespace linear{
 		natural t = 8;
 
 		// tiling
-		for(natural I = 0; I < nr; I += t){
-			for(natural J = 0; J < nc; J += t){
-				for(natural K = 0; K < n_col; K += t){
+		#pragma omp parallel
+		{
+
+		natural I, J, K;
+		#pragma omp for
+		for( I = 0; I < nr; I += t){
+			for( J = 0; J < nc; J += t){
+				for( K = 0; K < n_col; K += t){
 					
 					// the tile
+					#pragma omp for
 					for(natural i = I; i < std::min(I+t, nr); ++i){
 						for(natural j = J; j < std::min(J+t, nc); ++j){
 							for(natural k = K; k < std::min(K+t, n_col); ++k){
@@ -341,6 +352,7 @@ namespace linear{
 
 				}
 			}
+		}
 		}
 
 		return res;

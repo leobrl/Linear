@@ -41,11 +41,14 @@ else()
 	endif()
 ENDIF()
 
-include_directories(./includes/)
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(Linear PUBLIC OpenMP::OpenMP_CXX)
+else()
+	message(FATAL "OpenMP not found.")
+endif()
 
-target_include_directories(Linear
-	PUBLIC
-	${LINEAR_SOURCE_DIR}/../../armadillo-9.850.1/include/)
+include_directories(./includes/)
 
 enable_testing ()
 add_subdirectory (tests)

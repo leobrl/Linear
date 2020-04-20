@@ -2,12 +2,11 @@
 #include <chrono>
 #include <random>
 
-
 int main(){
 
     std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-    std::uniform_int_distribution<> dis(1, 10);
+    std::uniform_real_distribution<double> dis(0, 1);
 
 	std::vector<int> m {}; 
 	int p = 20;
@@ -24,7 +23,7 @@ int main(){
 	auto end = std::chrono::steady_clock::now();
 	std::chrono::duration<double> diff = end-start;
 
-	std::cout << diff.count() << std::endl;
+	std::cout << sz << " " << diff.count() << std::endl;
 
 	return 0;
 }
