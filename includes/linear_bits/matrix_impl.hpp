@@ -295,25 +295,21 @@ namespace linear{
 
 	template<typename T>
 	Matrix<T> Matrix<T>::operator* (const Matrix<T>& lhs){
-		return multiply_tiled(lhs);
+		return multiply_tiled_1(lhs);
 	}
 
 	template<typename T>
-	Matrix<T> Matrix<T>::multiply_naive(const Matrix<T>& lhs){
+	Matrix<T> Matrix<T>::multiply_naive(const Matrix<T>& rhs){
 		natural nr = n_row;
-		natural nc = lhs.ncol();
+		natural nc = rhs.ncol();
 		
 		auto res = Matrix<T>(nr, nc);
 
-		#pragma omp parallel
-		{
-			natural r, c, i;
-			#pragma omp for
-			for( r = 0; r < nr; ++r){
-				for( c = 0; c < nc; ++c){
-					for( i=0; i< n_col; ++i){
-						res(r, c) += this->operator()(r, i) * lhs(i, c);
-					}
+		natural r, c, i;
+		for( r = 0; r < nr; ++r){
+			for( c = 0; c < nc; ++c){
+				for( i=0; i< n_col; ++i){
+					res(r, c) += this->operator()(r, i) * rhs(i, c);
 				}
 			}
 		}
@@ -321,9 +317,49 @@ namespace linear{
 	}
 
 	template<typename T>
-	Matrix<T> Matrix<T>::multiply_tiled(const Matrix<T>& lhs){
+	Matrix<T> Matrix<T>::multiply_tiled_v2(const Matrix<T>& rhs){
 		natural nr = n_row;
-		natural nc = lhs.ncol();
+		natural nc = rhs.ncol();
+		
+		if(nr != nc){
+			throw std::invalid_argument("This function works only for square matrices.");
+		}
+
+		if(nr%2 != 0){
+			throw std::invalid_argument("This function works only \
+			for matrices with even number of rows.");
+		}
+
+		auto res = Matrix<T>(nr, nc);
+
+		natural i, j, k, ii, kk;
+		//tile
+		natural ib{64};
+		natural kb{32};
+
+		for(ii = 0; ii< nr; ii += ib){
+			for(kk = 0; kk< nr; kk += kb){
+				for( j = 0; j < nr; j += 2){
+					for( i = ii; i < ii + ib; i += 2){
+						for( k=kk; k< kk + kb; ++k){
+							res(i, j) += this->operator()(i, k) * rhs(k, j);
+							res(i+1, j) += this->operator()(i+1, k) * rhs(k, j);
+							res(i, j+1) += this->operator()(i, k) * rhs(k, j+1);
+							res(i+1, j+1) += this->operator()(i+1, k+1) * rhs(k+1, j+1);
+						}
+					}
+				}
+			}
+		}
+	
+
+		return res;
+	}
+
+	template<typename T>
+	Matrix<T> Matrix<T>::multiply_tiled_v1(const Matrix<T>& rhs){
+		natural nr = n_row;
+		natural nc = rhs.ncol();
 		
 		auto res = Matrix<T>(nr, nc);
 
@@ -331,21 +367,23 @@ namespace linear{
 		natural t = 8;
 
 		// tiling
-		#pragma omp parallel
-		{
-
 		natural I, J, K;
-		#pragma omp for
+		natural i, j, k;
 		for( I = 0; I < nr; I += t){
+			natural ni{std::min(I+t, nr)};
+			
 			for( J = 0; J < nc; J += t){
-				for( K = 0; K < n_col; K += t){
+				natural nj{std::min(J+t, nc)};
+
+				for( K = 0; K < n_col; K += t){		
+					natural nk{std::min(K+t, n_col)};
 					
-					// the tile
-					#pragma omp for
-					for(natural i = I; i < std::min(I+t, nr); ++i){
-						for(natural j = J; j < std::min(J+t, nc); ++j){
-							for(natural k = K; k < std::min(K+t, n_col); ++k){
-								res(i, j) += this->operator()(i, k) * lhs(k, j);
+					// the tile						
+					for( i = I; i < ni; ++i){
+						for( j = J; j < nj; ++j){
+							//auto p = res_it + j + i*nc;
+							for( k = K; k < nk; ++k){
+								res(i, j) += this->operator()(i, k) * rhs(k, j);
 							}
 						}
 					}	
@@ -353,7 +391,7 @@ namespace linear{
 				}
 			}
 		}
-		}
+		
 
 		return res;
 	}
