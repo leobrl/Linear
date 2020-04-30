@@ -295,7 +295,7 @@ namespace linear{
 
 	template<typename T>
 	Matrix<T> Matrix<T>::operator* (const Matrix<T>& lhs){
-		return multiply_tiled_1(lhs);
+		return multiply_tiled_v2(lhs);
 	}
 
 	template<typename T>
