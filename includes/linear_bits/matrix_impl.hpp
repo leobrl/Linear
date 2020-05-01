@@ -295,7 +295,7 @@ namespace linear{
 
 	template<typename T>
 	Matrix<T> Matrix<T>::operator* (const Matrix<T>& lhs){
-		return multiply_tiled_v2(lhs);
+		return multiply_tiled_v1(lhs);
 	}
 
 	template<typename T>
@@ -317,46 +317,6 @@ namespace linear{
 	}
 
 	template<typename T>
-	Matrix<T> Matrix<T>::multiply_tiled_v2(const Matrix<T>& rhs){
-		natural nr = n_row;
-		natural nc = rhs.ncol();
-		
-		if(nr != nc){
-			throw std::invalid_argument("This function works only for square matrices.");
-		}
-
-		if(nr%2 != 0){
-			throw std::invalid_argument("This function works only \
-			for matrices with even number of rows.");
-		}
-
-		auto res = Matrix<T>(nr, nc);
-
-		natural i, j, k, ii, kk;
-		//tile
-		natural ib{64};
-		natural kb{32};
-
-		for(ii = 0; ii< nr; ii += ib){
-			for(kk = 0; kk< nr; kk += kb){
-				for( j = 0; j < nr; j += 2){
-					for( i = ii; i < ii + ib; i += 2){
-						for( k=kk; k< kk + kb; ++k){
-							res(i, j) += this->operator()(i, k) * rhs(k, j);
-							res(i+1, j) += this->operator()(i+1, k) * rhs(k, j);
-							res(i, j+1) += this->operator()(i, k) * rhs(k, j+1);
-							res(i+1, j+1) += this->operator()(i+1, k+1) * rhs(k+1, j+1);
-						}
-					}
-				}
-			}
-		}
-	
-
-		return res;
-	}
-
-	template<typename T>
 	Matrix<T> Matrix<T>::multiply_tiled_v1(const Matrix<T>& rhs){
 		natural nr = n_row;
 		natural nc = rhs.ncol();
@@ -364,19 +324,21 @@ namespace linear{
 		auto res = Matrix<T>(nr, nc);
 
 		// tile sizes
-		natural t = 8;
+		natural I_b = 64;
+		natural J_b = 32;
+		natural K_b = 8;
 
 		// tiling
 		natural I, J, K;
 		natural i, j, k;
-		for( I = 0; I < nr; I += t){
-			natural ni{std::min(I+t, nr)};
+		for( I = 0; I < nr; I += I_b){
+			natural ni{std::min(I+I_b, nr)};
 			
-			for( J = 0; J < nc; J += t){
-				natural nj{std::min(J+t, nc)};
+			for( J = 0; J < nc; J += J_b){
+				natural nj{std::min(J+J_b, nc)};
 
-				for( K = 0; K < n_col; K += t){		
-					natural nk{std::min(K+t, n_col)};
+				for( K = 0; K < n_col; K += K_b){		
+					natural nk{std::min(K+K_b, n_col)};
 					
 					// the tile						
 					for( i = I; i < ni; ++i){

@@ -19,11 +19,21 @@ int main(){
 	auto lhs {linear::Matrix<int>(sz, sz, m)};
 
 	auto start = std::chrono::steady_clock::now();
-	auto res = rhs * lhs;
+	const int NUMBER_OF_LOOPS{10};
+    for(size_t i = 0; i<NUMBER_OF_LOOPS; i++){
+		auto res = rhs * lhs;
+	}
 	auto end = std::chrono::steady_clock::now();
-	std::chrono::duration<double> diff = end-start;
+	std::chrono::duration<double> delta_t = (end-start);
 
-	std::cout << sz << " " << diff.count() << std::endl;
+	double avg_time = (delta_t.count())/NUMBER_OF_LOOPS;
+	double gflop = 2*(sz*sz*sz)*1.0E-9;
+
+	std::cout << sz << "x"<< sz << ":\n";
+	std::cout << "\tAvg time " <<  avg_time << "\n";
+	std::cout << "\tGFLOP " << gflop << "\n";
+	std::cout << "\tGFLOP/sec " << gflop/avg_time << "\n";
+	std::cout << std::endl;
 
 	return 0;
 }

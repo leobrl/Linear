@@ -4,6 +4,7 @@
 #include "typedef_elem.hpp"
 
 #include <memory>
+#include <emmintrin.h>
 
 namespace linear{
 	
@@ -121,6 +122,6 @@ namespace linear{
 		private:
 			Matrix<T> 		multiply_naive(const Matrix&);
 			Matrix<T> 		multiply_tiled_v1(const Matrix&);
-			Matrix<T> 		multiply_tiled_v2(const Matrix&);
+
 	};
 }
