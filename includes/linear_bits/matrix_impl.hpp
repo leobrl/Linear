@@ -333,24 +333,50 @@ namespace linear{
 		natural i, j, k;
 		for( I = 0; I < nr; I += I_b){
 			natural ni{std::min(I+I_b, nr)};
+			natural NI = ni & 1? ni-1: ni; // one extra loop if ni is odd
 			
 			for( J = 0; J < nc; J += J_b){
 				natural nj{std::min(J+J_b, nc)};
+				natural NJ = nj & 1? nj-1 : nj; // one extra loop if ni is odd
 
 				for( K = 0; K < n_col; K += K_b){		
 					natural nk{std::min(K+K_b, n_col)};
 					
-					// the tile						
-					for( i = I; i < ni; ++i){
-						for( j = J; j < nj; ++j){
-							//auto p = res_it + j + i*nc;
+					// tile again to fill memory					 
+					for( i = I; i < NI; i += 2){
+						for( j = J; j < NJ; j += 2){
+							
+							for( k = K; k < nk; ++k){
+								res(i, j) += this->operator()(i, k) * rhs(k, j);
+								res(i+1, j) += this->operator()(i+1, k) * rhs(k, j);
+								res(i, j+1) += this->operator()(i, k) * rhs(k, j+1);								
+								res(i+1, j+1) += this->operator()(i+1, k) * rhs(k, j+1);
+							}						
+						}
+					}
+					
+					// calculate extra row if rhs has odd number of rows
+					for(i = NI; i < ni; i += 1){
+						// if NJ != nj it will be updated in next loop
+						for( j = J; j < NJ; j += 1){ 
 							for( k = K; k < nk; ++k){
 								res(i, j) += this->operator()(i, k) * rhs(k, j);
 							}
 						}
-					}	
+					}
+
+					// calculate extra column if lhs has odd number of columns
+					for( j = NJ; j < nj; j += 1){
+						for( i = I; i < ni; i += 1){
+							for( k = K; k < nk; ++k){
+								res(i, j) += this->operator()(i, k) * rhs(k, j);
+							}
+						}
+					}
+
 
 				}
+
 			}
 		}
 		
