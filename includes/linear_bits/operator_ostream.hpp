@@ -20,8 +20,8 @@ namespace linear{
 			}
 			os << mat(row, mat.n_col-1);
 
-			if(row != (mat.n_col - 1)){
-				os << std::endl;
+			if(row != (mat.n_row - 1)){
+				os << "\n";
 			}
 		}
 		return os;

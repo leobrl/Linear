@@ -6,22 +6,23 @@ int main(){
 
     std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-    std::uniform_real_distribution<double> dis(0, 1);
+    std::uniform_real_distribution<> dis(0.0, 1.0);
 
-	std::vector<int> m {}; 
+	using Matrix = linear::Matrix<double>;
+	std::vector<double> m {}; 
 	int p = 20;
 	for(int i=0; i<std::pow(2.0, p);++i){
 		m.push_back(dis(gen));
 	}
 
 	auto sz = static_cast<linear::natural>(std::pow(2.0, p/2));
-	auto rhs {linear::Matrix<int>(sz, sz, m)};
-	auto lhs {linear::Matrix<int>(sz, sz, m)};
+	auto rhs {Matrix(sz, sz, m)};
+	auto lhs {Matrix(sz, sz, m)};
 
 	auto start = std::chrono::steady_clock::now();
 	const int NUMBER_OF_LOOPS{10};
-    for(size_t i = 0; i<NUMBER_OF_LOOPS; i++){
-		auto res = rhs * lhs;
+	for(size_t i = 0; i<NUMBER_OF_LOOPS; i++){
+		auto temp = rhs * lhs;
 	}
 	auto end = std::chrono::steady_clock::now();
 	std::chrono::duration<double> delta_t = (end-start);

@@ -1,13 +1,17 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/mpl/list.hpp>
-#include <Linear.hpp>	
+#include <Linear.hpp>
+#include <random>
 #include <iostream>
 
 using test_types = boost::mpl::list<int, double, float, char>;
+using numeric_test_types = boost::mpl::list<int, double, float>;
 
-BOOST_AUTO_TEST_SUITE(matrix_basic_test)
+/// Basic tests
 
-BOOST_AUTO_TEST_CASE(test_matrix_ostream,
+BOOST_AUTO_TEST_SUITE(matrix_basic)
+
+BOOST_AUTO_TEST_CASE(matrix_ostream,
                       * boost::unit_test::description("Tests matrix ostream operator") )
 {
 	std::string expected = "0 0 0\n0 0 0\n0 0 0";
@@ -26,7 +30,7 @@ BOOST_AUTO_TEST_CASE(test_matrix_ostream,
 	BOOST_TEST(check_1 & check_2);
 }
 
-BOOST_AUTO_TEST_CASE(test_diag_ctor,
+BOOST_AUTO_TEST_CASE(diag_ctor,
                       * boost::unit_test::description("Tests diagonal matrix constructor") )
 {
 	
@@ -45,11 +49,11 @@ BOOST_AUTO_TEST_CASE(test_diag_ctor,
 	BOOST_TEST(check_1 & check_2);
 }
 
-BOOST_AUTO_TEST_CASE(test_vector_ctor,
+BOOST_AUTO_TEST_CASE(vector_ctor,
                       * boost::unit_test::description("Tests matrix constructor from vector of elements") )
 {
 	
-	std::string expected = "1 2 3 4\n5 6 7 8\n";
+	std::string expected = "1 2 3 4\n5 6 7 8";
 	std::vector<int> v {1, 2, 3, 4, 5, 6, 7, 8};
 
 	auto m {linear::Matrix<int>(2, 4, v)};
@@ -64,7 +68,7 @@ BOOST_AUTO_TEST_CASE(test_vector_ctor,
 	BOOST_TEST(check_1 & check_2);
 }
 
-BOOST_AUTO_TEST_CASE(test_matrix_transpose,
+BOOST_AUTO_TEST_CASE(matrix_transpose,
 					* boost::unit_test::description("Tests matrix transpose."))
 {
 	std::vector<int> m {1, 2, 3, 4, 5, 6}; 
@@ -90,7 +94,7 @@ BOOST_AUTO_TEST_CASE(test_matrix_transpose,
 
 }
 
-BOOST_AUTO_TEST_CASE(test_inplace_matrix_multiplication,
+BOOST_AUTO_TEST_CASE(inplace_matrix_multiplication,
 					* boost::unit_test::description("Tests matrix in place matrix multiplication."))
 {
 	std::vector<int> m {1,2,3,4}; 
@@ -112,7 +116,7 @@ BOOST_AUTO_TEST_CASE(test_inplace_matrix_multiplication,
 	BOOST_TEST(is_correct);
 }
 
-BOOST_AUTO_TEST_CASE(test_matrix_multiplication_2_2_2_4,
+BOOST_AUTO_TEST_CASE(mat_mult_2_2_2_4,
 					* boost::unit_test::description("Tests matrix matrix multiplication."))
 {
 	std::vector<int> m_rhs {1, 2, 3, 4};
@@ -137,7 +141,7 @@ BOOST_AUTO_TEST_CASE(test_matrix_multiplication_2_2_2_4,
 	BOOST_TEST(is_correct);
 }
 
-BOOST_AUTO_TEST_CASE(test_matrix_multiplication_2_3_3_4,
+BOOST_AUTO_TEST_CASE(mat_mult_2_3_3_4,
 					* boost::unit_test::description("Tests matrix matrix multiplication."))
 {
 	std::vector<int> m_rhs {1, 2, 3, 4, 5, 6};
@@ -162,7 +166,7 @@ BOOST_AUTO_TEST_CASE(test_matrix_multiplication_2_3_3_4,
 	BOOST_TEST(is_correct);
 }
 
-BOOST_AUTO_TEST_CASE(test_matrix_multiplication_3_3_3_4,
+BOOST_AUTO_TEST_CASE(mat_mult_3_3_3_4,
 					* boost::unit_test::description("Tests matrix matrix multiplication."))
 {
 	std::vector<int> m_rhs {1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -187,7 +191,7 @@ BOOST_AUTO_TEST_CASE(test_matrix_multiplication_3_3_3_4,
 	BOOST_TEST(is_correct);
 }
 
-BOOST_AUTO_TEST_CASE(test_matrix_multiplication_3_3_3_3,
+BOOST_AUTO_TEST_CASE(mat_mult_3_3_3_3,
 					* boost::unit_test::description("Tests matrix matrix multiplication."))
 {
 	std::vector<int> m_rhs {1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -212,7 +216,95 @@ BOOST_AUTO_TEST_CASE(test_matrix_multiplication_3_3_3_3,
 	BOOST_TEST(is_correct);
 }
 
-BOOST_AUTO_TEST_CASE(test_matrix_inplace_matrix_sum,
+BOOST_AUTO_TEST_CASE(large_mat_mult_1)
+{
+	std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(1); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<> dis(1.0, 10.0);
+
+	int l = 65;
+
+	using Matrix = linear::Matrix<double>;
+	std::vector<double> rhs_m {};
+	std::vector<double> lhs_m {};
+
+	for(int i=0; i<l*l; ++i){
+		rhs_m.push_back(dis(gen));
+		lhs_m.push_back(dis(gen));
+	}
+
+	auto rhs {Matrix(l, l, rhs_m)};
+	auto lhs {Matrix(l, l, lhs_m)};
+
+	auto res = lhs*rhs;
+
+	//std::cout<< rhs << std::endl;
+	//std::cout<< "*" << std::endl;
+	//std::cout<< lhs << std::endl;
+	//std::cout<< "=" << std::endl;
+	//std::cout<< res << std::endl;
+
+	// calculate expected result assuming matrix
+	// is row major 
+	double max_err = 0.0;
+	std::vector<double> expected;
+	for(int r=0; r<l; r++){
+		for(int c=0; c<l; c++){
+			int v = 0;
+			for(int k=0; k<l; k++){
+				v += lhs_m[r*l + k] * rhs_m[k*l + c];
+			}
+			auto err = abs(v - res(r, c));
+			max_err =  err > max_err? err : max_err;
+		}
+	}
+
+	BOOST_TEST(max_err < 1.0e-15);
+}
+
+BOOST_AUTO_TEST_CASE(large_mat_mult_2)
+{
+	int l = 9;
+
+	using Matrix = linear::Matrix<double>;
+	std::vector<double> rhs_m {};
+	std::vector<double> lhs_m {};
+
+	for(int i=0; i<l*l; ++i){
+		rhs_m.push_back(1.0);
+		lhs_m.push_back(1.0);
+	}
+
+	auto rhs {Matrix(l, l, rhs_m)};
+	auto lhs {Matrix(l, l, lhs_m)};
+
+	auto res = lhs*rhs;
+
+	//std::cout<< rhs << std::endl;
+	//std::cout<< "*" << std::endl;
+	//std::cout<< lhs << std::endl;
+	//std::cout<< "=" << std::endl;
+	//std::cout<< res << std::endl;
+
+	// calculate expected result assuming matrix
+	// is row major 
+	double max_err = 0.0;
+	std::vector<double> expected;
+	for(int r=0; r<l; r++){
+		for(int c=0; c<l; c++){
+			int v = 0;
+			for(int k=0; k<l; k++){
+				v += lhs_m[r*l + k] * rhs_m[k*l + c];
+			}
+			auto err = abs(v - res(r, c));
+			max_err =  err > max_err? err : max_err;
+		}
+	}
+
+	BOOST_TEST(max_err < 1.0e-15);
+}
+
+BOOST_AUTO_TEST_CASE(mat_inplace_sum,
 					* boost::unit_test::description("Tests matrix in place matrix sum."))
 {
 	std::vector<int> m_rhs {1, 2, 3, 4, 5, 6};
@@ -233,7 +325,7 @@ BOOST_AUTO_TEST_CASE(test_matrix_inplace_matrix_sum,
 	BOOST_TEST(is_correct);
 }
 
-BOOST_AUTO_TEST_CASE(test_matrix_inplace_matrix_subtraction,
+BOOST_AUTO_TEST_CASE(mat_inplace_subtr,
 					* boost::unit_test::description("Tests matrix in place matrix subtraction."))
 {
 	std::vector<int> m_rhs {1, 2, 3, 4, 5, 6};
@@ -271,7 +363,7 @@ BOOST_AUTO_TEST_CASE(test_matrix_instream_operator,
 	BOOST_TEST(is_correct);
 }
 
-BOOST_AUTO_TEST_CASE(test_matrix_instream_operator_exception,
+BOOST_AUTO_TEST_CASE(mat_instream_exception,
 					* boost::unit_test::description("Tests matrix instream operator exception."))
 {
 	std::vector<int> vec {1, 2, 3, 4, 5, 6, 7};
@@ -280,19 +372,20 @@ BOOST_AUTO_TEST_CASE(test_matrix_instream_operator_exception,
 	BOOST_CHECK_THROW(m >> vec, std::invalid_argument);
 }
 
-BOOST_AUTO_TEST_CASE(test_invalid_vector_ctor,
+BOOST_AUTO_TEST_CASE(invalid_vector_ctor,
 					 * boost::unit_test::description("Tests matrix constructor from invalid vector of elements")){
 
 	std::vector<int> v {1, 2, 3, 4, 5, 6, 7, 8};
 	BOOST_CHECK_THROW(linear::Matrix<int>(2, 5, v), std::invalid_argument);
 }
 
-
 BOOST_AUTO_TEST_SUITE_END()
 
-BOOST_AUTO_TEST_SUITE(matrix_template_tests)
+/// Templates tests
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(test_base_ctor, T, test_types){
+BOOST_AUTO_TEST_SUITE(matrix_templ)
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(base_ctor, T, test_types){
 	
 	auto mat = linear::Matrix<T>();
 	auto value = linear::natural();
@@ -303,7 +396,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_base_ctor, T, test_types){
 	BOOST_TEST(check_1 & check_2);
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(test_copy_constructor, T, test_types){
+BOOST_AUTO_TEST_CASE_TEMPLATE(copy_ctor, T, test_types){
 	
 	linear::natural n {5};
 	auto mat {linear::Matrix<T>(n, n)};
@@ -312,7 +405,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_copy_constructor, T, test_types){
 	BOOST_TEST(not (&mat(0,0) == &mat_copy(0,0)));
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(test_move_op, T, test_types){
+BOOST_AUTO_TEST_CASE_TEMPLATE(move_op, T, test_types){
 	
 	linear::natural n {5};
 	auto mat {linear::Matrix<T>(n, n)};
@@ -323,7 +416,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_move_op, T, test_types){
 	BOOST_TEST(&(mat_copy(0,0)) == ptr);
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(test_row_iterator, T, test_types){
+BOOST_AUTO_TEST_CASE_TEMPLATE(row_it, T, test_types){
 	auto vec = std::vector<T>(10);
 	
 	for(size_t e = 0; e<vec.size(); ++e){
@@ -347,7 +440,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_row_iterator, T, test_types){
 	BOOST_TEST(assert_increment & assert_decrement);
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(test_row_iterator_post_increment, T, test_types){
+BOOST_AUTO_TEST_CASE_TEMPLATE(row_it_post_incr, T, test_types){
 	auto vec = std::vector<T>(10);
 	
 	for(size_t e = 0; e<vec.size(); ++e){
@@ -371,7 +464,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_row_iterator_post_increment, T, test_types){
 	BOOST_TEST(assert_increment & assert_decrement);
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(test_col_iterator, T, test_types){
+BOOST_AUTO_TEST_CASE_TEMPLATE(col_it, T, test_types){
 
 	auto vec = std::vector<T>(10);
 	for(size_t e = 0; e<vec.size(); ++e){
@@ -403,7 +496,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_col_iterator, T, test_types){
 	BOOST_TEST(assert_increment);
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(test_col_iterator_post_increment, T, test_types){
+BOOST_AUTO_TEST_CASE_TEMPLATE(col_iterator_post_incr, T, test_types){
 
 	auto vec = std::vector<T>(10);
 	for(size_t e = 0; e<vec.size(); ++e){
@@ -433,6 +526,59 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(test_col_iterator_post_increment, T, test_types){
 	}
 
 	BOOST_TEST(assert_increment);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+// Numeric templates  
+
+BOOST_AUTO_TEST_SUITE(matrix_num_templ)
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(t_mat_mult, T, numeric_test_types)
+{
+	std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_real_distribution<> dis(1.0, 10.0);
+	std::uniform_int_distribution<> int_dis(1, 50);
+
+	auto lhs_n_row = int_dis(gen);
+	auto lhs_n_col = int_dis(gen);
+	auto rhs_n_col = int_dis(gen);
+
+	using Matrix = linear::Matrix<T>;
+	std::vector<T> rhs_m {};
+	std::vector<T> lhs_m {};
+
+	for(int i=0; i<lhs_n_row*lhs_n_col; ++i){
+		lhs_m.push_back(static_cast<T>(dis(gen)));
+	}
+
+	for(int i=0; i<lhs_n_col*rhs_n_col; ++i){
+		rhs_m.push_back(static_cast<T>(dis(gen)));
+	}
+
+	auto lhs {Matrix(lhs_n_row, lhs_n_col, lhs_m)};
+	auto rhs {Matrix(lhs_n_col, rhs_n_col, rhs_m)};
+
+	auto res = lhs*rhs;
+
+	// calculate expected result assuming matrix
+	// is row major 
+	std::vector<T> expected;
+
+	T max_err = 0;
+	for(int r=0; r<lhs_n_row; r++){
+		for(int c=0; c<rhs_n_col; c++){
+			T v = 0;
+			for(int k=0; k<lhs_n_col; k++){
+				v += lhs_m[r*lhs_n_col + k] * rhs_m[k*rhs_n_col + c];
+			}
+			auto err = abs(v - res(r, c));
+			max_err =  err > max_err? err : max_err;
+		}
+	}
+	
+	BOOST_TEST(max_err < 1.0e-10);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

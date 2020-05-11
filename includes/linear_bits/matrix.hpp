@@ -45,7 +45,7 @@ namespace linear{
 			Matrix& 		operator+= 	(const Matrix&);
 			Matrix&			operator-= 	(const Matrix&);
 			
-			Matrix	 		operator* 	(const Matrix&);
+			Matrix			operator* 	(const Matrix&);
 
 			Matrix&			operator>>	(const std::vector<T>);
 		
@@ -120,8 +120,7 @@ namespace linear{
 			friend std::ostream& operator<< <T> (std::ostream&, const Matrix<T>&);
 
 		private:
-			Matrix<T> 		multiply_naive(const Matrix&);
-			Matrix<T> 		multiply_tiled_v1(const Matrix&);
-
+			Matrix 		multiply_naive(const Matrix&);
+			Matrix 		multiply_tiled(const Matrix&);
 	};
 }

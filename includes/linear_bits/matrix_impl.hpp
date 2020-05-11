@@ -295,7 +295,7 @@ namespace linear{
 
 	template<typename T>
 	Matrix<T> Matrix<T>::operator* (const Matrix<T>& lhs){
-		return multiply_tiled_v1(lhs);
+		return multiply_tiled(lhs);
 	}
 
 	template<typename T>
@@ -316,8 +316,9 @@ namespace linear{
 		return res;
 	}
 
+	
 	template<typename T>
-	Matrix<T> Matrix<T>::multiply_tiled_v1(const Matrix<T>& rhs){
+	Matrix<T> Matrix<T>::multiply_tiled(const Matrix<T>& rhs){
 		natural nr = n_row;
 		natural nc = rhs.ncol();
 		
@@ -344,8 +345,7 @@ namespace linear{
 					
 					// tile again to fill memory					 
 					for( i = I; i < NI; i += 2){
-						for( j = J; j < NJ; j += 2){
-							
+						for( j = J; j < NJ; j += 2){							
 							for( k = K; k < nk; ++k){
 								res(i, j) += this->operator()(i, k) * rhs(k, j);
 								res(i+1, j) += this->operator()(i+1, k) * rhs(k, j);
@@ -373,8 +373,6 @@ namespace linear{
 							}
 						}
 					}
-
-
 				}
 
 			}
@@ -383,9 +381,105 @@ namespace linear{
 
 		return res;
 	}
+	
+	/* Template specialization */
 
+	template<>
+	inline Matrix<double> Matrix<double>::multiply_tiled(const Matrix<double>& rhs){
+		natural nr = n_row;
+		natural nc = rhs.ncol();
+		
+		auto res = Matrix<double>(nr, nc);
+
+		// tile sizes
+		natural I_b = 64;
+		natural J_b = 32;
+		natural K_b = 8;
+
+		__m128d lhs_00_01, lhs_10_11;
+		__m128d rhs_k0_k1;
+		__m128d res_00_01, res_10_11;
+
+		double partial_input[4] __attribute__ ((aligned (16)));
+		double partial_output[4] __attribute__ ((aligned (16)));
+		
+		// tiling
+		natural I, J, K;
+		natural i, j, k;
+		for( I = 0; I < nr; I += I_b){
+			natural ni{std::min(I+I_b, nr)};
+			natural NI = ni & 1? ni-1: ni; // one extra loop needed if ni is odd
+			
+			for( J = 0; J < nc; J += J_b){
+				natural nj{std::min(J+J_b, nc)};
+				natural NJ = nj & 1? nj-1 : nj; // one extra loop needed if ni is odd
+
+				for( K = 0; K < n_col; K += K_b){		
+					natural nk = {std::min(K+K_b, n_col)};
+
+					// tile again to fill memory					 
+					for( i = I; i < NI; i += 2){
+
+						for( j = J; j < NJ; j += 2){
+
+							res_00_01 = _mm_setzero_pd();
+							res_10_11 = _mm_setzero_pd();
+							
+							for( k = K; k < nk; ++k){
+
+								partial_input[0] = this->operator()(i, k);
+								partial_input[1] = this->operator()(i+1, k);
+								partial_input[2] = rhs(k, j);
+								partial_input[3] = rhs(k, j+1);
+
+								lhs_00_01 = _mm_load_pd1(partial_input); 	// first row of 2 x 2 lhs matrix
+								lhs_10_11 = _mm_load_pd1(partial_input+1); 	// second row of 2 x 2 lhs matrix
+								rhs_k0_k1 = _mm_load_pd(partial_input+2);		// row k of nk x 2 rhs matrix
+
+								lhs_00_01 = _mm_mul_pd(lhs_00_01, rhs_k0_k1);
+								res_00_01 = _mm_add_pd(lhs_00_01, res_00_01);
+								
+								lhs_10_11 = _mm_mul_pd(lhs_10_11, rhs_k0_k1);
+								res_10_11 = _mm_add_pd(lhs_10_11, res_10_11);
+								
+							}
+
+							_mm_store_pd(partial_output, res_00_01);
+							_mm_store_pd(partial_output+2, res_10_11);
+							
+							res(i, j) += partial_output[0];
+							res(i, j+1) += partial_output[1];
+							res(i+1, j) += partial_output[2];
+							res(i+1, j+1) += partial_output[3]; 							
+						}
+					}
+					
+					// calculate extra row if rhs has odd number of rows
+					for(i = NI; i < ni; i += 1){
+						// if NJ != nj it will be updated in next loop
+						for( j = J; j < NJ; j += 1){ 
+							for( k = K; k < nk; ++k){
+								res(i, j) += this->operator()(i, k) * rhs(k, j);
+							}
+						}
+					}
+
+					// calculate extra column if lhs has odd number of columns
+					for( j = NJ; j < nj; j += 1){
+						for( i = I; i < ni; i += 1){
+							for( k = K; k < nk; ++k){
+								res(i, j) += this->operator()(i, k) * rhs(k, j);
+							}
+						}
+					}
+				}
+
+			}
+		}
+		return res;
+	}
+	
 	/**/
-
 	template<typename T>
 	Matrix<T>& Matrix<T>::operator>> (const std::vector<T> rhs){
 
