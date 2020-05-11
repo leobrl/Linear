@@ -397,11 +397,12 @@ namespace linear{
 		natural K_b = 8;
 
 		__m128d lhs_00_01, lhs_10_11;
-		__m128d rhs_k0_k1;
-		__m128d res_00_01, res_10_11;
+		__m128d temp_lhs_00_01, temp_lhs_10_11;
+		__m128d rhs_k0_k1, rhs_k2_k3;
+		__m128d res_00_01, res_10_11, res_02_03, res_12_13;
 
-		double partial_input[4] __attribute__ ((aligned (16)));
-		double partial_output[4] __attribute__ ((aligned (16)));
+		double partial_input[6] __attribute__ ((aligned (16)));
+		double partial_output[8] __attribute__ ((aligned (16)));
 		
 		// tiling
 		natural I, J, K;
@@ -412,7 +413,7 @@ namespace linear{
 			
 			for( J = 0; J < nc; J += J_b){
 				natural nj{std::min(J+J_b, nc)};
-				natural NJ = nj & 1? nj-1 : nj; // one extra loop needed if ni is odd
+				natural NJ = nj % 4 > 0? nj-(nj % 4) : nj; // one extra loop needed if ni is odd
 
 				for( K = 0; K < n_col; K += K_b){		
 					natural nk = {std::min(K+K_b, n_col)};
@@ -420,40 +421,56 @@ namespace linear{
 					// tile again to fill memory					 
 					for( i = I; i < NI; i += 2){
 
-						for( j = J; j < NJ; j += 2){
+						for( j = J; j < NJ; j += 4){
 
 							res_00_01 = _mm_setzero_pd();
+							res_02_03 = _mm_setzero_pd();
 							res_10_11 = _mm_setzero_pd();
-							
+							res_12_13 = _mm_setzero_pd();
+
 							for( k = K; k < nk; ++k){
 
 								partial_input[0] = this->operator()(i, k);
 								partial_input[1] = this->operator()(i+1, k);
 								partial_input[2] = rhs(k, j);
 								partial_input[3] = rhs(k, j+1);
+								partial_input[4] = rhs(k, j+2);
+								partial_input[5] = rhs(k, j+3);
 
-								lhs_00_01 = _mm_load_pd1(partial_input); 	// first row of 2 x 2 lhs matrix
-								lhs_10_11 = _mm_load_pd1(partial_input+1); 	// second row of 2 x 2 lhs matrix
-								rhs_k0_k1 = _mm_load_pd(partial_input+2);		// row k of nk x 2 rhs matrix
+								lhs_00_01 = _mm_load_pd1(partial_input); 	// first row of 2 x 4 lhs matrix
+								lhs_10_11 = _mm_load_pd1(partial_input+1); 	// second row of 2 x 4 lhs matrix
+								rhs_k0_k1 = _mm_load_pd(partial_input+2);		// first two elements of row k of nk x 4 rhs matrix								
+								rhs_k2_k3 = _mm_load_pd(partial_input+4);		// first two elements of row k of nk x 4 rhs matrix
 
-								lhs_00_01 = _mm_mul_pd(lhs_00_01, rhs_k0_k1);
-								res_00_01 = _mm_add_pd(lhs_00_01, res_00_01);
+								temp_lhs_00_01 = _mm_mul_pd(lhs_00_01, rhs_k0_k1);
+								res_00_01 = _mm_add_pd(temp_lhs_00_01, res_00_01);
+
+								temp_lhs_00_01 = _mm_mul_pd(lhs_00_01, rhs_k2_k3);
+								res_02_03 = _mm_add_pd(temp_lhs_00_01, res_02_03);
 								
-								lhs_10_11 = _mm_mul_pd(lhs_10_11, rhs_k0_k1);
-								res_10_11 = _mm_add_pd(lhs_10_11, res_10_11);
-								
-							}
+								temp_lhs_10_11 = _mm_mul_pd(lhs_10_11, rhs_k0_k1);
+								res_10_11 = _mm_add_pd(temp_lhs_10_11, res_10_11);
 
+								temp_lhs_10_11 = _mm_mul_pd(lhs_10_11, rhs_k2_k3);
+								res_12_13 = _mm_add_pd(temp_lhs_10_11, res_12_13);
+							}			
+						
 							_mm_store_pd(partial_output, res_00_01);
-							_mm_store_pd(partial_output+2, res_10_11);
-							
+							_mm_store_pd(partial_output+2, res_02_03);
+							_mm_store_pd(partial_output+4, res_10_11);
+							_mm_store_pd(partial_output+6, res_12_13);	
+
 							res(i, j) += partial_output[0];
 							res(i, j+1) += partial_output[1];
-							res(i+1, j) += partial_output[2];
-							res(i+1, j+1) += partial_output[3]; 							
-						}
-					}
-					
+							res(i, j+2) += partial_output[2];
+							res(i, j+3) += partial_output[3];
+							res(i+1, j) += partial_output[4];
+							res(i+1, j+1) += partial_output[5];
+							res(i+1, j+2) += partial_output[6];
+							res(i+1, j+3) += partial_output[7];
+						} 							
+					}	
+				
 					// calculate extra row if rhs has odd number of rows
 					for(i = NI; i < ni; i += 1){
 						// if NJ != nj it will be updated in next loop
