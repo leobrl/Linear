@@ -392,9 +392,9 @@ namespace linear{
 		auto res = Matrix<double>(nr, nc);
 
 		// tile sizes
-		natural I_b = 64;
-		natural J_b = 32;
-		natural K_b = 8;
+		natural I_b = 256;
+		natural J_b = 256;
+		natural K_b = 16;
 
 		__m128d lhs_00_01, lhs_10_11;
 		__m128d temp_lhs_00_01, temp_lhs_10_11;
@@ -437,10 +437,10 @@ namespace linear{
 								partial_input[4] = rhs(k, j+2);
 								partial_input[5] = rhs(k, j+3);
 
-								lhs_00_01 = _mm_load_pd1(partial_input); 	// first row of 2 x 4 lhs matrix
-								lhs_10_11 = _mm_load_pd1(partial_input+1); 	// second row of 2 x 4 lhs matrix
-								rhs_k0_k1 = _mm_load_pd(partial_input+2);		// first two elements of row k of nk x 4 rhs matrix								
-								rhs_k2_k3 = _mm_load_pd(partial_input+4);		// first two elements of row k of nk x 4 rhs matrix
+								lhs_00_01 = _mm_load_pd1(partial_input); 	
+								lhs_10_11 = _mm_load_pd1(partial_input+1); 	
+								rhs_k0_k1 = _mm_load_pd(partial_input+2);		
+								rhs_k2_k3 = _mm_load_pd(partial_input+4);
 
 								temp_lhs_00_01 = _mm_mul_pd(lhs_00_01, rhs_k0_k1);
 								res_00_01 = _mm_add_pd(temp_lhs_00_01, res_00_01);
