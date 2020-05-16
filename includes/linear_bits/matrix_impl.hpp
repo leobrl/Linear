@@ -396,6 +396,11 @@ namespace linear{
 		natural J_b = 256;
 		natural K_b = 16;
 
+		natural i_b = 2;
+		natural j_b = 4;
+		natural j_b_shift = 2;
+
+
 		__m128d lhs_00_01, lhs_10_11;
 		__m128d temp_lhs_00_01, temp_lhs_10_11;
 		__m128d rhs_k0_k1, rhs_k2_k3;
@@ -413,15 +418,16 @@ namespace linear{
 			
 			for( J = 0; J < nc; J += J_b){
 				natural nj{std::min(J+J_b, nc)};
-				natural NJ = nj % 4 > 0? nj-(nj % 4) : nj; // one extra loop needed if ni is odd
+				natural nj_ = ((nj >> j_b_shift) << j_b_shift);
+				natural NJ = (nj_ == nj)? nj : nj_; // one extra loop needed if ni is odd
 
 				for( K = 0; K < n_col; K += K_b){		
 					natural nk = {std::min(K+K_b, n_col)};
 
 					// tile again to fill memory					 
-					for( i = I; i < NI; i += 2){
+					for( i = I; i < NI; i += i_b){
 
-						for( j = J; j < NJ; j += 4){
+						for( j = J; j < NJ; j += j_b){
 
 							res_00_01 = _mm_setzero_pd();
 							res_02_03 = _mm_setzero_pd();
