@@ -222,7 +222,7 @@ BOOST_AUTO_TEST_CASE(large_mat_mult_1)
     std::mt19937 gen(1); //Standard mersenne_twister_engine seeded with rd()
     std::uniform_int_distribution<> dis(1.0, 10.0);
 
-	int l = 21;
+	int l = 20;
 
 	using Matrix = linear::Matrix<double>;
 	std::vector<double> rhs_m {};
