@@ -534,7 +534,7 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(matrix_num_templ)
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(t_mat_mult, T, numeric_test_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(mat_mult, T, numeric_test_types)
 {
 	std::random_device rd;  //Will be used to obtain a seed for the random number engine
     auto seed{rd()};
@@ -568,6 +568,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(t_mat_mult, T, numeric_test_types)
 	//std::cout<< lhs_n_col << " " << rhs_n_col << std::endl;	
 	//std::cout<< "=" << std::endl;
 	//std::cout<< res << std::endl;
+	//std::cout<< "Expected" << std::endl;
 
 	// calculate expected result assuming matrix
 	// is row major 
@@ -580,9 +581,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(t_mat_mult, T, numeric_test_types)
 			for(int k=0; k<lhs_n_col; k++){
 				v += lhs_m[r*lhs_n_col + k] * rhs_m[k*rhs_n_col + c];
 			}
+			//std::cout << v << " ";
 			auto err = abs(v - res(r, c));
 			max_err =  err > max_err? err : max_err;
 		}
+		//std::cout << std::endl;
 	}
 	
 	auto pass{max_err < 1.0e-10};

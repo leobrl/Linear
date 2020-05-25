@@ -277,7 +277,7 @@ namespace linear{
 	template<typename T>
 	Matrix<T>& Matrix<T>::transpose(){
 			
-		std::vector<T> t;
+		raw_memory t;
 		for(natural c = 0; c < n_col; ++c){
 			for(natural r = 0; r < n_row; ++r){
 				t.push_back(mem->operator[](c + n_col*r));
@@ -401,28 +401,29 @@ namespace linear{
 		natural i_b_shift = 2;
 		natural j_b_shift = 2;
 
-
 		__m128d a0, a1, a2, a3;
 		__m128d prod;
 		__m128d b01, b23;
 		__m128d ab0, ab1, ab2, ab3;
 		__m128d ab4, ab5, ab6, ab7;
 
-		double partial_input[8] __attribute__ ((aligned (16)));
-		double partial_output[16] __attribute__ ((aligned (16)));
+		double rhs_tile[4] __attribute__ ((aligned (16)));
+		double res_tile[16] __attribute__ ((aligned (16)));
 		
+		double* p = mem->pfront();
+
 		// tiling
 		natural I, J, K;
 		natural i, j, k;
 		for( I = 0; I < nr; I += I_b){
 			natural ni{std::min(I+I_b, nr)};
 			natural ni_ = ((ni >> i_b_shift) << i_b_shift);
-			natural NI = (ni_ == ni)? ni : ni_; // extra loop needed if ni is odd
+			natural NI = (ni_ == ni)? ni : ni_; // extra loop if needed
 			
 			for( J = 0; J < nc; J += J_b){
 				natural nj{std::min(J+J_b, nc)};
 				natural nj_ = ((nj >> j_b_shift) << j_b_shift);
-				natural NJ = (nj_ == nj)? nj : nj_; // extra loop needed if ni is odd
+				natural NJ = (nj_ == nj)? nj : nj_; // extra loop needed if needed
 
 				for( K = 0; K < n_col; K += K_b){		
 					natural nk = {std::min(K+K_b, n_col)};
@@ -431,39 +432,54 @@ namespace linear{
 					for( i = I; i < NI; i += i_b){
 
 						for( j = J; j < NJ; j += j_b){
+							
+							res_tile[0] = res(i, j);
+							res_tile[1] = res(i, j+1);
+							res_tile[2] = res(i, j+2);
+							res_tile[3] = res(i, j+3);
 
-							ab0 = _mm_setzero_pd();
-							ab1 = _mm_setzero_pd();
-							ab2 = _mm_setzero_pd();
-							ab3 = _mm_setzero_pd();
-							ab4 = _mm_setzero_pd();
-							ab5 = _mm_setzero_pd();
-							ab6 = _mm_setzero_pd();
-							ab7 = _mm_setzero_pd();
+							res_tile[4] = res(i+1, j);
+							res_tile[5] = res(i+1, j+1);
+							res_tile[6] = res(i+1, j+2);
+							res_tile[7] = res(i+1, j+3);
+
+							res_tile[8] = res(i+2, j);
+							res_tile[9] = res(i+2, j+1);
+							res_tile[10] = res(i+2, j+2);
+							res_tile[11] = res(i+2, j+3);
+
+							res_tile[12] = res(i+3, j);
+							res_tile[13] = res(i+3, j+1);
+							res_tile[14] = res(i+3, j+2);
+							res_tile[15] = res(i+3, j+3);
+
+							ab0 = _mm_load_pd(res_tile);
+							ab1 = _mm_load_pd(res_tile+2);
+							ab2 = _mm_load_pd(res_tile+4);
+							ab3 = _mm_load_pd(res_tile+6);
+							ab4 = _mm_load_pd(res_tile+8);
+							ab5 = _mm_load_pd(res_tile+10);
+							ab6 = _mm_load_pd(res_tile+12);
+							ab7 = _mm_load_pd(res_tile+14);
 
 							for( k = K; k < nk; ++k){
 
-								partial_input[0] = this->operator()(i, k);
-								partial_input[1] = this->operator()(i+1, k);
-								partial_input[2] = rhs(k, j);
-								partial_input[3] = rhs(k, j+1);
-								partial_input[4] = rhs(k, j+2);
-								partial_input[5] = rhs(k, j+3);
-								partial_input[6] = this->operator()(i+2, k);
-								partial_input[7] = this->operator()(i+3, k);
-
-								a0 = _mm_load_pd1(partial_input);
-								a1 = _mm_load_pd1(partial_input+1);
+								a0 = _mm_load_pd1(p + i*n_col + k);
+								a1 = _mm_load_pd1(p + (i+1)*n_col + k);
+								a2 = _mm_load_pd1(p + (i+2)*n_col + k);
+								a3 = _mm_load_pd1(p + (i+3)*n_col + k);
 								
-								b01 = _mm_load_pd(partial_input+2);		
-								b23 = _mm_load_pd(partial_input+4);
+								rhs_tile[0] = rhs(k, j);
+								rhs_tile[1] = rhs(k, j+1);
+								rhs_tile[2] = rhs(k, j+2);
+								rhs_tile[3] = rhs(k, j+3);
 
-								a2 = _mm_load_pd1(partial_input+6);
-								a3 = _mm_load_pd1(partial_input+7);
+								b01 = _mm_load_pd(rhs_tile);
+								b23 = _mm_load_pd(rhs_tile+2);
 
 								// a(k, 0) *b(k,:)
 								prod = _mm_mul_pd(a0, b01);
-								ab0 = _mm_add_pd(ab0, prod);
+								ab0 = _mm_add_pd(prod, ab0);
 
 								prod = _mm_mul_pd(a0, b23);
 								ab1 = _mm_add_pd(ab1, prod);
@@ -490,41 +506,42 @@ namespace linear{
 
 								prod = _mm_mul_pd(a3, b23);
 								ab7 = _mm_add_pd(ab7, prod);
-							}			
-						
-							_mm_store_pd(partial_output, ab0);
-							_mm_store_pd(partial_output+2, ab1);
-							_mm_store_pd(partial_output+4, ab2);
-							_mm_store_pd(partial_output+6, ab3);
-							_mm_store_pd(partial_output+8, ab4);
-							_mm_store_pd(partial_output+10, ab5);
-							_mm_store_pd(partial_output+12, ab6);
-							_mm_store_pd(partial_output+14, ab7);	
+								
+							}
+					
+							_mm_store_pd(res_tile, ab0);
+							_mm_store_pd(res_tile+2, ab1);
+							_mm_store_pd(res_tile+4, ab2);
+							_mm_store_pd(res_tile+6, ab3);
 
-							
-							res(i, j) += partial_output[0];
-							res(i, j+1) += partial_output[1];
-							res(i, j+2) += partial_output[2];
-							res(i, j+3) += partial_output[3];
-							
-							res(i+1, j) += partial_output[4];
-							res(i+1, j+1) += partial_output[5];
-							res(i+1, j+2) += partial_output[6];
-							res(i+1, j+3) += partial_output[7];
+							_mm_store_pd(res_tile+8, ab4);
+							_mm_store_pd(res_tile+10, ab5);
+							_mm_store_pd(res_tile+12, ab6);
+							_mm_store_pd(res_tile+14, ab7);
 
-							res(i+2, j) += partial_output[8];
-							res(i+2, j+1) += partial_output[9];
-							res(i+2, j+2) += partial_output[10];
-							res(i+2, j+3) += partial_output[11];
+							res(i, j) = res_tile[0];
+							res(i, j+1) = res_tile[1];
+							res(i, j+2) = res_tile[2];
+							res(i, j+3) = res_tile[3];
 							
-							res(i+3, j) += partial_output[12];
-							res(i+3, j+1) += partial_output[13];
-							res(i+3, j+2) += partial_output[14];
-							res(i+3, j+3) += partial_output[15];
+							res(i+1, j) = res_tile[4];
+							res(i+1, j+1) = res_tile[5];
+							res(i+1, j+2) = res_tile[6];
+							res(i+1, j+3) = res_tile[7];
+
+							res(i+2, j) = res_tile[8];
+							res(i+2, j+1) = res_tile[9];
+							res(i+2, j+2) = res_tile[10];
+							res(i+2, j+3) = res_tile[11];
+							
+							res(i+3, j) = res_tile[12];
+							res(i+3, j+1) = res_tile[13];
+							res(i+3, j+2) = res_tile[14];
+							res(i+3, j+3) = res_tile[15];	
 						} 							
 					}	
 				
-					// calculate extra row if rhs has odd number of rows
+					// calculate remaining rows
 					for(i = NI; i < ni; i += 1){
 						// if NJ != nj it will be updated in next loop
 						for( j = J; j < NJ; j += 1){ 
@@ -534,7 +551,7 @@ namespace linear{
 						}
 					}
 
-					// calculate extra column if lhs has odd number of columns
+					// calculate remaining columns
 					for( j = NJ; j < nj; j += 1){
 						for( i = I; i < ni; i += 1){
 							for( k = K; k < nk; ++k){

@@ -15,6 +15,7 @@ namespace linear{
 	class Matrix{
 		
 		using block = std::unique_ptr<Block<T>>;
+		using raw_memory = typename Block<T>::raw_memory;
 
 		private:
 			natural n_row;
