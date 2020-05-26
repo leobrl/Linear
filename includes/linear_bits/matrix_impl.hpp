@@ -437,7 +437,7 @@ namespace linear{
 							res_tile[1] = res(i, j+1);
 							res_tile[2] = res(i, j+2);
 							res_tile[3] = res(i, j+3);
-
+							
 							res_tile[4] = res(i+1, j);
 							res_tile[5] = res(i+1, j+1);
 							res_tile[6] = res(i+1, j+2);
