@@ -171,4 +171,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( test_template_copy_ctor, T, test_types )
 
 }
 
+BOOST_AUTO_TEST_CASE_TEMPLATE( test_alignment, T, test_types )
+{
+  linear::natural n{10};
+  auto block {linear::Block<T>(n)};
+  auto p{block.pfront()};
+  
+  BOOST_TEST(((unsigned long)p & 15) == 0);  
+}
+
 BOOST_AUTO_TEST_SUITE_END()
