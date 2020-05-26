@@ -25,25 +25,25 @@ namespace linear{
 
 		public:
 
-			inline 			Matrix() noexcept : n_row(0), n_col(0) {}
-			inline 			~Matrix() = default;
+			inline			Matrix() noexcept : n_row(0), n_col(0) {}
+			inline			~Matrix() = default;
 			
 							Matrix(const Matrix&);
 							Matrix(Matrix&&) noexcept;
-			explicit 		Matrix(natural, natural);							
-			explicit 		Matrix(const std::vector<T>&);
-			explicit 		Matrix(const natural, const natural, const std::vector<T>&);
+			explicit		Matrix(natural, natural);							
+			explicit		Matrix(const std::vector<T>&);
+			explicit		Matrix(const natural, const natural, const std::vector<T>&);
 			
-			Matrix& 		operator= (const Matrix&)	= delete;
-			Matrix& 		operator= (Matrix&&)		= delete;
+			Matrix&			operator= (const Matrix&)	= delete;
+			Matrix&			operator= (Matrix&&)		= delete;
 
 			inline const T&	operator() (natural r, natural c) const {return mem->operator[](c + n_col*r);} // row major
-			inline T& 		operator() (natural r, natural c) 		{return mem->operator[](c + n_col*r);} // row major
+			inline T&		operator() (natural r, natural c)		{return mem->operator[](c + n_col*r);} // row major
 
-			Matrix& 		transpose();
+			Matrix&			transpose();
 
-			Matrix& 		operator*= 	(Matrix&);
-			Matrix& 		operator+= 	(const Matrix&);
+			Matrix&			operator*= 	(Matrix&);
+			Matrix&			operator+= 	(const Matrix&);
 			Matrix&			operator-= 	(const Matrix&);
 			
 			Matrix			operator* 	(const Matrix&);
@@ -54,9 +54,9 @@ namespace linear{
 				
 				public:
 					typedef std::bidirectional_iterator_tag iterator_category;
-					typedef T 								value_type;
-					typedef T*                             	pointer;
-					typedef T&                             	reference;
+					typedef T								value_type;
+					typedef T*								pointer;
+					typedef T&								reference;
 
 				private:
 					Matrix& mat;
