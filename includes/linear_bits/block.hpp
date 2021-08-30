@@ -68,6 +68,8 @@ namespace linear{
 
             template<typename U> AlignAllocator (const AlignAllocator<U> &) noexcept {}
         
+//            template <typename U> struct rebind { using other = AlignAllocator<U, T_num_els>; };
+
             template<class U> bool operator==(const AlignAllocator<U>&) const noexcept
             {
                 return true;
